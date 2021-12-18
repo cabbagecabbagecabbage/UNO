@@ -9,7 +9,7 @@ const cardWidth = 240, cardHeight = 360; //must be in the ratio 2/3 to avoid dis
 const cardBackSide = new Image(); //image of the backside of an uno card
 const deck = []; //array of images of the cards in the deck
 
-let room = 0;
+let room;
 let hand = [];
 let turn = false;
 let username;
@@ -110,13 +110,30 @@ function onMouseClick() {
 
 }
 
-socket.on('connect', requestRoom); //call requestRoom upon connecting
-
-function requestRoom(){
+socket.on('connect', function (){
     socket.emit('requestRoom', username); //tell server to request room, passing in the username
     console.log('Room Requested');
-}
+});
 
+
+socket.on('responseRoom', function(roomName){
+    if (name != 'error'){
+        room = roomName;
+        console.log(`${username} successfully joined ${room}`);
+        ctx.fillText(name, 0, 10);
+        ctx.fillText(username, 100, 390);
+    }
+    else {
+        socket.disconnect();
+        alert("All rooms are full! Try again later");
+    }
+})
+
+
+socket.on('countDown', function(secondsLeft){
+    ctx.clearRect(0,10,15,10);
+    ctx.fillText(secondsLeft, 0, 20)
+})
 
 
 init();

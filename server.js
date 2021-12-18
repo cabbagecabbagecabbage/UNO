@@ -59,9 +59,7 @@ function onConnection(socket) {
                 - the room is not currently in a game (we check this with a countdown timer)
             */
             if (roomPlayerCount < roomLimit && data[roomName]['timer']['secondsLeft'] > 0){
-                console.log(roomPlayerCount);
                 socket.join(roomName); //join the room
-                console.log(io.sockets.adapter.rooms.get(roomName).size);
                 console.log(`${socket.username} joined ${roomName} (${roomPlayerCount+1}/${roomLimit})`);
                 io.to(socket.id).emit('responseRoom', roomName); //tell the client they were able to join
                 if (roomPlayerCount != 0){
@@ -69,7 +67,7 @@ function onConnection(socket) {
                     //refer to https://www.w3schools.com/jsref/met_win_setinterval.asp
                     clearInterval(data[roomName]['timer']['id']); //clear the previous countdown using the id returned from setInterval
                     data[roomName]['timer']['secondsLeft'] = 10; //reset secondsLeft
-                    data[roomName]['timer']['id'] = setInterval(countdown(roomName), 1000); //start new countdown
+                    data[roomName]['timer']['id'] = setInterval(function() {countdown(roomName)}, 1000); //start new countdown
                 }
                 return;
             }
