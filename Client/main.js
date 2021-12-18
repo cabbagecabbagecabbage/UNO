@@ -9,9 +9,9 @@ const cardWidth = 240, cardHeight = 360; //must be in the ratio 2/3 to avoid dis
 const cardBackSide = new Image(); //image of the backside of an uno card
 const deck = []; //array of images of the cards in the deck
 
-let room;
+let room = 0;
 let hand = [];
-let turn;
+let turn = false;
 let username;
 
 
@@ -109,6 +109,14 @@ function checkCookie() {
 function onMouseClick() {
 
 }
+
+socket.on('connect', requestRoom); //call requestRoom upon connecting
+
+function requestRoom(){
+    socket.emit('requestRoom', username); //tell server to request room, passing in the username
+    console.log('Room Requested');
+}
+
 
 
 init();
