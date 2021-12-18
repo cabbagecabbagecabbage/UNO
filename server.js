@@ -49,7 +49,7 @@ function onConnection(socket) {
             let roomName = "Room " + i; //name of room
             let roomPlayerCount; //current number of players in this room
             try {
-                roomPlayerCount = io.sockets.adapter.rooms[roomName].length; //if the room exists, get the number of players
+                roomPlayerCount = io.sockets.adapter.rooms.get(roomName).size; //if the room exists, get the number of players
             } catch (e) {
                 roomPlayerCount = 0; //otherwise, the room is empty
             }
@@ -59,7 +59,9 @@ function onConnection(socket) {
                 - the room is not currently in a game (we check this with a countdown timer)
             */
             if (roomPlayerCount < roomLimit && data[roomName]['timer']['secondsLeft'] > 0){
+                console.log(roomPlayerCount);
                 socket.join(roomName); //join the room
+                console.log(io.sockets.adapter.rooms.get(roomName).size);
                 console.log(`${socket.username} joined ${roomName} (${roomPlayerCount+1}/${roomLimit})`);
                 io.to(socket.id).emit('responseRoom', roomName); //tell the client they were able to join
                 if (roomPlayerCount != 0){
@@ -85,6 +87,6 @@ function countdown(roomName){
     if (secondsLeft == 0){
         //countdown reached 0
         clearInterval(data[roomName]['timer']['id']); //stop the countdown
-        startGame(roomName);
+        startGame(roomName); //start game
     }
 }
