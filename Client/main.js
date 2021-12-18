@@ -5,14 +5,14 @@ const ctx = canvas.getContext('2d'); //drawing context
 
 
 //cards
-const cardWidth = 240, cardHeight = 360; //must be in the ratio 2/3 to look not weird
+const cardWidth = 240, cardHeight = 360; //must be in the ratio 2/3 to avoid distortion
 const cardBackSide = new Image(); //image of the backside of an uno card
-const deck = [];
+const deck = []; //array of images of the cards in the deck
 
 let room;
 let hand = [];
 let turn;
-let playerName;
+let username;
 
 
 function init() {
@@ -32,18 +32,7 @@ function init() {
 	//add listeners for mouse-click events (refer to https://www.w3schools.com/jsref/dom_obj_event.asp)
 	document.addEventListener('click', onMouseClick);
 
-	// //get the player's name, and store it in a cookie
-	// playerName = getCookie('playerName');
-	// if (playerName == null){
-	// 	//player's cookie expired; ask for name
-	// 	playerName = prompt("Enter your nickname: ", "Anonymous Player");
-	// 	if (playerName == null || playerName === ""){
-	// 		playerName = "Anonymous Player";
-	// 	}
-	// 	else {
-	// 		setCookie('playerName', playerName, 600);
-	// 	}
-	// }
+	checkCookie()
 
 	//connect to server
 	socket.connect();
@@ -79,7 +68,7 @@ function getCookie(cookieName) {
     let decodedCookie = decodeURIComponent(document.cookie);
 
     // splitting the cookie into elements in an array based on ;'s
-    let ca = decodedCooke.split(';');
+    let ca = decodedCookie.split(';');
 
 	// Looping through the characters in the cookie
     for (let i = 0; i < ca.length; i++) {
@@ -99,7 +88,7 @@ function getCookie(cookieName) {
 }
 
 function checkCookie() {
-    let username = getCookie("username");
+    username = getCookie("username");
 
     // If the username isn't empty, we welcome the user again by using an alert box
     if (username != "") {
