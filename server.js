@@ -88,3 +88,37 @@ function countdown(roomName){
         startGame(roomName); //start game
     }
 }
+
+// Begins a game if the conditions to begin a game are met
+function startGame(roomName) {
+
+    console.log(roomName + ': Requesting game');
+    // variable to hold the number of people in the room
+    let people;
+    // Checking if a room has people
+    try {
+        people = io.sockets.adapter.rooms.get(roomName).size;
+    } 
+    // If there are no people, we do not start the game
+    catch (e) {
+        console.log(roomName + ': No one here');
+        return;
+    }
+
+    // If there are more than 2 people in the room, we start the game
+    if (people >= 2) {
+        console.log(roomName + ": Starting game");
+
+        // Storing the playerSockets as a set
+        let playerSockets = io.sockets.adapter.rooms.get(roomName);
+
+        let counter = 0;
+
+        // Updating the database with the sockets of each player in the room and their username
+        for (let item of playerSockets) {
+            data[roomName]['players'][counter]['id'] = item;
+            data[roomName]['players'][counter]['username'] = io.sockets.sockets.get(item).username;
+            counter += 1;
+        }
+    }
+}
