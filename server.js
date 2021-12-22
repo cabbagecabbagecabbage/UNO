@@ -99,7 +99,7 @@ function startGame(roomName) {
     try {
         people = io.sockets.adapter.rooms.get(roomName).size;
     } 
-    // If there are no people, we do not start the game
+    // If there are no people, we do not start the game in the room
     catch (e) {
         console.log(roomName + ': No one here');
         return;
@@ -120,5 +120,8 @@ function startGame(roomName) {
             data[roomName]['players'][counter]['username'] = io.sockets.sockets.get(item).username;
             counter += 1;
         }
+
+        // Updating the data base with the number of people in the room
+        data[roomName]['roomPlayerCount'] = people;
     }
 }
