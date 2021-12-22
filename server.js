@@ -14,8 +14,8 @@ const roomLimit = 10; //maximum number of people in one room (according to UNO r
 deck = ['deck0.png', 'deck1.png', 'deck2.png', 'deck3.png'];
 
 // Adding all the other card names to the deck
-for (let i = 0; i < 13; i++) {
-    for (let j = 0; j < 8; j++) {
+for (let i = 1; i <= 13; i++) {
+    for (let j = 0; j <= 7; j++) {
         deck.push('deck' + (i*10 + j) + '.png');
     }
 }
@@ -167,5 +167,14 @@ function startGame(roomName) {
 
         // Updating the deck of the current room
         data[roomName]['deck'] = randDeck;
+
+        // update the starting card
+        data[roomName]['cardOnBoard'] = randDeck[0];
+
+        // tell the clients what their hands are
+        for (let i = 0; i < people; ++i){
+            io.to(data[roomName]['players'][i]['id']).emit('hand',data[roomName]['players'][i]['hand']);
+            io.to(data[roomName]['players'][i]['id']).emit('currentCard',data[roomName]['cardOnBoard']);
+        }
     }
 }

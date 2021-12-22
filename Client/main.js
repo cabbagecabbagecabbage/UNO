@@ -5,7 +5,8 @@ const ctx = canvas.getContext('2d'); //drawing context
 
 
 //cards
-const cardWidth = 240, cardHeight = 360; //must be in the ratio 2/3 to avoid distortion
+const cardWidth = 120, cardHeight = 180; //must be in the ratio 2/3 to avoid distortion
+const topMargin = 200, leftMargin = 80;
 const cardBackSide = new Image(); //image of the backside of an uno card
 const deck = []; //array of images of the cards in the deck
 
@@ -24,8 +25,8 @@ function init() {
 	cardBackSide.src = "images/uno.png";
 	for (let i = 0; i <= 13; ++i){
 		for (let j = 0; j <= 7; ++j){
-			deck[i*10+j] = new Image();
-			deck[i*10+j].src = `images/deck/deck${i*10+j}.png`;
+			deck[`deck${i*10+j}.png`] = new Image();
+			deck[`deck${i*10+j}.png`].src = `images/deck/deck${i*10+j}.png`;
 		}
 	}
 
@@ -117,23 +118,46 @@ socket.on('connect', function (){
 
 
 socket.on('responseRoom', function(roomName){
-    if (name != 'error'){
+    if (roomName != 'error'){
         room = roomName;
         console.log(`${username} successfully joined ${room}`);
-        ctx.fillText(name, 0, 10);
-        ctx.fillText(username, 100, 390);
+        ctx.fillText(roomName, 100, 10);
+        ctx.fillText(username, 0, 10);
     }
     else {
         socket.disconnect();
         alert("All rooms are full! Try again later");
     }
-})
+});
 
 
 socket.on('countDown', function(secondsLeft){
     ctx.clearRect(0,10,15,10);
     ctx.fillText(secondsLeft, 0, 20)
-})
+});
 
+socket.on('hand', function(playerHand){
+    console.log("Displaying the cards...");
+    hand = playerHand; //update the hand of the client
+    ctx.clearRect(0,topMargin,canvas.width,canvas.height); //clear the canvas space where the previous hand was drawn
+    let row = 0, column = 0;
+    for (let i = 0; i < hand.length; ++i){
+        if (column == 7){
+            //go to next row
+            column = 0;
+            ++row;
+        }
+        ctx.drawImage(deck[hand[i]],
+                      leftMargin+column*cardWidth,
+                      topMargin+row*cardHeight,cardWidth,cardHeight);
+        ++column;
+    }
+});
+
+socket.on('currentCard', function(currentCard){
+    ctx.clearRect(leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
+    ctx.drawImage(deck[currentCard],leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
+    ctx.drawImage(cardBackSide,leftMargin+4*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
+});
 
 init();
