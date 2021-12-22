@@ -11,6 +11,15 @@ http.listen(port, () => console.log('listening on http://localhost:' + port));
 const roomCount = 10; //number of public rooms available
 const roomLimit = 10; //maximum number of people in one room (according to UNO rules)
 
+deck = ['deck0.png', 'deck1.png', 'deck2.png', 'deck3.png'];
+
+// Adding all the other card names to the deck
+for (let i = 0; i < 13; i++) {
+    for (let j = 0; j < 8; j++) {
+        deck.push('deck' + (i*10 + j) + '.png');
+    }
+}
+
 
 //initialize the "database"
 let data = [];
@@ -123,5 +132,40 @@ function startGame(roomName) {
 
         // Updating the data base with the number of people in the room
         data[roomName]['roomPlayerCount'] = people;
+
+        // Generating a random deck for the room
+
+        // We create a deep copy of the deck so that whatever changes happen 
+        // to the deck of the current room dont happen in 'deck'
+        randDeck = [...deck];
+
+        // Shuffling the array using the Fisher-Yates shuffle algorithm
+        // https://javascript.info/task/shuffle
+        
+        for (let i = randDeck.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
+        
+            // swap elements array[i] and array[j]
+            [randDeck[i], randDeck[j]] = [randDeck[j], randDeck[i]];
+          }
+
+        // Dealing 7 cards to each player
+        for (let i = 0; i < people; i++) {
+            data[roomName]['players'][i]['hand'] = randDeck.slice(7 * i, 7 * (i+1));
+        }
+
+        // Making the deck the remaining cards
+        randDeck = randDeck.slice(7 * people, randDeck.length);
+
+        // While a wild card or a draw 4 wild card is at the top of the deck, we move it to the bottom of the deck
+        while (parseInt(randDeck[0].slice(4, randDeck[0].length - 4)) >= 130) {
+            console.log('yes');
+            let specialCard = randDeck[0];
+            randDeck = randDeck.slice(1, randDeck.length);
+            randDeck.push(specialCard);
+        }
+
+        // Updating the deck of the current room
+        data[roomName]['deck'] = randDeck;
     }
 }
