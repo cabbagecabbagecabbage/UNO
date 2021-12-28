@@ -12,7 +12,7 @@ const deck = []; //array of images of the cards in the deck
 
 let room;
 let hand = [];
-let turn = false;
+let turn = true;
 let username;
 
 
@@ -123,7 +123,7 @@ function onMouseClick(e) {
             if (cardX < e.pageX && e.pageX < cardX + cardWidth && cardY < e.pageY && e.pageY < cardY + cardHeight){
                 //inform the server that we are playing this card
                 console.log(`${hand[i]} played`);
-                socket.emit('playCard', [hand[i], room]); 
+                socket.emit('playingCard', [room, hand[i]]); 
                 return;
             }
             ++column;
