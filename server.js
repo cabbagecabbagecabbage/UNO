@@ -85,7 +85,50 @@ function onConnection(socket) {
         io.to(socket.id).emit('responseRoom', 'error');
         console.log('All rooms are full!');
     });
+
+
+    // Playing a card if it is legal to do so
+
+    socket.on('playingCard', function(info) {
+
+        let curPlayerIndex = data[info[0]]['turn'];
+
+        // Current card that is face-up
+        let curCard = parseInt(data[info[0]]['cardOnBoard'].substring(4, data[info[0]]['cardOnBoard'].length - 4));
+        let curCardNum = (curCard - (curCard % 10)) / 10;
+        let curCardClr = ((curCard % 10) % 4);
+
+        // Extracting the digits in the name of the card
+        let card = parseInt(info[1].substring(4, info[1].length - 4));
+
+        // Do case for wild cards later
+
+        let cardNum = (card - (card % 10)) / 10;
+        let cardClr = ((card % 10) % 4);
+
+        // If the card numbers are the same or the card colours are the same, the move is valid
+        if (curCardNum == cardNum || curCardClr == cardClr) {
+            data[room]['cardOnBoard'] = card;
+            
+            // Remove the card from the players hand
+            let cardIndex = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
+            
+            data[info[0]]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1);
+
+            
+
+            // Re-draw the deck of the current player
+            
+            io.to(data[info[0]]['players'][i]['id']).emit('hand',data[info[0]]['players'][curPlayerIndex]['hand']);
+
+            // Re-draw the current card for all the players
+            for (let i = 0; i < people; ++i){
+                io.to(data[info[0]]['players'][i]['id']).emit('currentCard',data[info[0]]['cardOnBoard']);
+            }
+        }
+    });
 }
+
 
 function countdown(roomName){
     let secondsLeft = data[roomName]['timer']['secondsLeft']--; //decrease secondsLeft
