@@ -21,7 +21,7 @@ function init() {
 
 	//background, font, loading images
 	canvas.style.backgroundColor = "#03fce8";
-	ctx.font = "12px : Arial";
+	ctx.font = "16px : Arial";
 	cardBackSide.src = "images/uno.png";
 	for (let i = 0; i <= 13; ++i){
 		for (let j = 0; j <= 7; ++j){
@@ -107,8 +107,38 @@ function checkCookie() {
     }
 }
 
-function onMouseClick() {
+function onMouseClick(e) {
+    if (turn){
+        //check for playing a card
+        let column = 0, row = 0;
+        for (let i = 0; i < hand.length; ++i){
+            if (column == 7){
+                //go to next row
+                column = 0;
+                ++row;
+            }
+            let cardX = leftMargin+column*cardWidth;
+            let cardY = topMargin+row*cardHeight;
+            //check if the click is within the area of the card
+            if (cardX < e.pageX && e.pageX < cardX + cardWidth && cardY < e.pageY && e.pageY < cardY + cardHeight){
+                //inform the server that we are playing this card
+                console.log(`${hand[i]} played`);
+                socket.emit('playCard', [hand[i], room]); 
+                return;
+            }
+            ++column;
+        }
 
+        //check for drawing a card
+        if (leftMargin+4*cardWidth < e.pageX &&
+            e.pageX < leftMargin+5*cardWidth &&
+            topMargin-cardHeight < e.pageY &&
+            e.pageY < topMargin){
+            console.log(`drawing a card`);
+            socket.emit('drawCard', [1,room]);
+            return;
+        }
+    }
 }
 
 socket.on('connect', function (){
@@ -147,6 +177,7 @@ socket.on('hand', function(playerHand){
             column = 0;
             ++row;
         }
+        //refer to https://www.w3schools.com/tags/canvas_drawimage.asp
         ctx.drawImage(deck[hand[i]],
                       leftMargin+column*cardWidth,
                       topMargin+row*cardHeight,cardWidth,cardHeight);
