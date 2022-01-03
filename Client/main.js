@@ -1,6 +1,7 @@
 const socket = io({autoConnect: false});
 
 const canvas = document.getElementById('canvas'); //canvas of html page
+const rect = canvas.getBoundingClientRect();
 const ctx = canvas.getContext('2d'); //drawing context
 
 
@@ -108,6 +109,8 @@ function checkCookie() {
 }
 
 function onMouseClick(e) {
+    let pageX = e.pageX - rect.left, pageY = e.pageY - rect.top;
+    console.log(pageX,pageY);
     if (turn){
         //check for playing a card
         let column = 0, row = 0;
@@ -120,7 +123,7 @@ function onMouseClick(e) {
             let cardX = leftMargin+column*cardWidth;
             let cardY = topMargin+row*cardHeight;
             //check if the click is within the area of the card
-            if (cardX < e.pageX && e.pageX < cardX + cardWidth && cardY < e.pageY && e.pageY < cardY + cardHeight){
+            if (cardX < pageX && pageX < cardX + cardWidth && cardY < pageY && pageY < cardY + cardHeight){
                 //inform the server that we are playing this card
                 console.log(`${hand[i]} played`);
                 socket.emit('playingCard', [room, hand[i]]); 
@@ -130,10 +133,10 @@ function onMouseClick(e) {
         }
 
         //check for drawing a card
-        if (leftMargin+4*cardWidth < e.pageX &&
-            e.pageX < leftMargin+5*cardWidth &&
-            topMargin-cardHeight < e.pageY &&
-            e.pageY < topMargin){
+        if (leftMargin+4*cardWidth < pageX &&
+            pageX < leftMargin+5*cardWidth &&
+            topMargin-cardHeight < pageY &&
+            pageY < topMargin){
             console.log(`drawing a card`);
             socket.emit('drawCard', [1,room]);
             return;
