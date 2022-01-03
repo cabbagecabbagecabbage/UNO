@@ -93,8 +93,12 @@ function onConnection(socket) {
 
         let curPlayerIndex = data[info[0]]['turn'];
 
+        let cardPath = data[info[0]]['cardOnBoard'];
+
+        console.log(cardPath);
+
         // Current card that is face-up
-        let curCard = parseInt(data[info[0]]['cardOnBoard'].substring(4, data[info[0]]['cardOnBoard'].length - 4));
+        let curCard = parseInt(cardPath.substring(4, data[info[0]]['cardOnBoard'].length - 4));
         let curCardNum = (curCard - (curCard % 10)) / 10;
         let curCardClr = ((curCard % 10) % 4);
 
@@ -108,7 +112,7 @@ function onConnection(socket) {
 
         // If the card numbers are the same or the card colours are the same, the move is valid
         if (curCardNum == cardNum || curCardClr == cardClr) {
-            data[room]['cardOnBoard'] = card;
+            data[info[0]]['cardOnBoard'] = card;
             
             // Remove the card from the players hand
             let cardIndex = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
@@ -119,7 +123,7 @@ function onConnection(socket) {
 
             // Re-draw the deck of the current player
             
-            io.to(data[info[0]]['players'][i]['id']).emit('hand',data[info[0]]['players'][curPlayerIndex]['hand']);
+            io.to(data[info[0]]['players'][data[info[0]]['turn']]['id']).emit('hand',data[info[0]]['players'][curPlayerIndex]['hand']);
 
             // Re-draw the current card for all the players
             for (let i = 0; i < people; ++i){
