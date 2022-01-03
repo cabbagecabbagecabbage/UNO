@@ -1,7 +1,7 @@
 const socket = io({autoConnect: false});
 
 const canvas = document.getElementById('canvas'); //canvas of html page
-const rect = canvas.getBoundingClientRect();
+var rect;
 const ctx = canvas.getContext('2d'); //drawing context
 
 
@@ -109,6 +109,7 @@ function checkCookie() {
 }
 
 function onMouseClick(e) {
+    rect = canvas.getBoundingClientRect();
     let pageX = e.pageX - rect.left, pageY = e.pageY - rect.top;
     console.log(pageX,pageY);
     if (turn){
