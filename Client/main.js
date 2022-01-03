@@ -182,7 +182,7 @@ socket.on('hand', function(playerHand){
             ++row;
         }
         //refer to https://www.w3schools.com/tags/canvas_drawimage.asp
-        ctx.drawImage(deck[hand[i]],
+        ctx.drawImage(deck[`deck${hand[i]}.png`],
                       leftMargin+column*cardWidth,
                       topMargin+row*cardHeight,cardWidth,cardHeight);
         ++column;
@@ -191,7 +191,8 @@ socket.on('hand', function(playerHand){
 
 socket.on('currentCard', function(currentCard){
     ctx.clearRect(leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
-    ctx.drawImage(deck[currentCard],leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
+    console.log("C",currentCard,deck[currentCard]);
+    ctx.drawImage(deck[`deck${currentCard}.png`],leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
     ctx.drawImage(cardBackSide,leftMargin+4*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
 });
 

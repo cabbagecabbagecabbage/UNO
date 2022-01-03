@@ -11,12 +11,12 @@ http.listen(port, () => console.log('listening on http://localhost:' + port));
 const roomCount = 10; //number of public rooms available
 const roomLimit = 10; //maximum number of people in one room (according to UNO rules)
 
-deck = ['deck0.png', 'deck1.png', 'deck2.png', 'deck3.png'];
+deck = [0,1,2,3];
 
 // Adding all the other card names to the deck
 for (let i = 1; i <= 13; i++) {
     for (let j = 0; j <= 7; j++) {
-        deck.push('deck' + (i*10 + j) + '.png');
+        deck.push(i*10 + j);
     }
 }
 
@@ -29,6 +29,7 @@ for (let i = 1; i <= roomCount; i++) {
     room['timer']['id'] = 0; //setInterval() returns an id, which can be used to clearInterval()
     room['timer']['secondsLeft'] = 10; //number of seconds
 
+    room['size'] = 0;
     room['deck'] = [];
     room['reverse'] = 0;
     room['turn'] = 0;
@@ -93,15 +94,13 @@ function onConnection(socket) {
 
         let curPlayerIndex = data[info[0]]['turn'];
 
-        let cardPath = data[info[0]]['cardOnBoard'];
-
         console.log(info[0]);
         console.log(info[1]);
 
         // console.log("Card Path: " + cardPath);
 
         // Current card that is face-up
-        let curCard = parseInt(cardPath.substring(4, cardPath.length - 4));
+        let curCard = data[info[0]]['cardOnBoard'];
         let curCardNum = (curCard - (curCard % 10)) / 10;
         let curCardClr = ((curCard % 10) % 4);
 
@@ -112,7 +111,7 @@ function onConnection(socket) {
         // console.log("\n");
 
         // Extracting the digits in the name of the card
-        let card = parseInt(info[1].substring(4, info[1].length - 4));
+        let card = info[1];
 
         // Do case for wild cards later
 
@@ -129,8 +128,8 @@ function onConnection(socket) {
             data[info[0]]['cardOnBoard'] = card;
             
             // Remove the card from the players hand
+            data[info[0]]['currentCard']  = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
             let cardIndex = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
-            
             data[info[0]]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1);
 
             
@@ -143,6 +142,9 @@ function onConnection(socket) {
             for (let i = 0; i < data[info[0]]['players'].length; ++i){
                 io.to(data[info[0]]['players'][i]['id']).emit('currentCard',data[info[0]]['cardOnBoard']);
             }
+
+            //Move the turn
+            data[info[0]]['turn'] = (curPlayerIndex + 1) % data[info[0]]['size'];
         }
     });
 }
@@ -174,6 +176,7 @@ function startGame(roomName) {
         console.log(roomName + ': No one here');
         return;
     }
+    data[roomName]['size'] = people;
 
     // If there are more than 2 people in the room, we start the game
     if (people >= 2) {
@@ -219,7 +222,7 @@ function startGame(roomName) {
         randDeck = randDeck.slice(7 * people, randDeck.length);
 
         // While a wild card or a draw 4 wild card is at the top of the deck, we move it to the bottom of the deck
-        while (parseInt(randDeck[0].slice(4, randDeck[0].length - 4)) >= 130) {
+        while (randDeck[0] >= 130) {
             console.log('yes');
             let specialCard = randDeck[0];
             randDeck = randDeck.slice(1, randDeck.length);
