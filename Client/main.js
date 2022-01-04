@@ -13,7 +13,7 @@ const deck = []; //array of images of the cards in the deck
 
 let room;
 let hand = [];
-let turn = true;
+let turn = false;
 let username;
 
 
@@ -194,6 +194,10 @@ socket.on('currentCard', function(currentCard){
     console.log("C",currentCard,deck[currentCard]);
     ctx.drawImage(deck[`deck${currentCard}.png`],leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
     ctx.drawImage(cardBackSide,leftMargin+4*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
+});
+
+socket.on('setTurn', function(bool) {
+    turn = bool;
 });
 
 init();

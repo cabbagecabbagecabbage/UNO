@@ -11,6 +11,13 @@ http.listen(port, () => console.log('listening on http://localhost:' + port));
 const roomCount = 10; //number of public rooms available
 const roomLimit = 10; //maximum number of people in one room (according to UNO rules)
 
+// Defining the starting numbers of the special cards 
+const skipCard = 10;
+const reverseCard = 11;
+const draw2Card = 12;
+const wildCard = 13;
+const wildDraw4Card = 14;
+
 deck = [0,1,2,3];
 
 // Adding all the other card names to the deck
@@ -31,7 +38,8 @@ for (let i = 1; i <= roomCount; i++) {
 
     room['size'] = 0;
     room['deck'] = [];
-    room['reverse'] = 0;
+    // room['reverse'] will always equal 1 or -1 to indicate the direction the moves are going in
+    room['reverse'] = 1;
     room['turn'] = 0;
     room['cardOnBoard'] = 0;
     room['roomPlayerCount'] = 0;
@@ -124,7 +132,29 @@ function onConnection(socket) {
 
         // If the card numbers are the same or the card colours are the same, the move is valid
         if (curCardNum == cardNum || curCardClr == cardClr) {
-            console.log("YES");
+
+
+            // Case when a draw2Card was played by the previous player
+            if (curCardNum == draw2Card) {
+
+                // Consider passing in the player you want to add cards to instead of using data[room]['turn']
+
+                // We make turn the next person so that drawCard draws cards for them
+                data[info[0]]['turn'] = (curPlayerIndex + 1 * data[info[0]]['reverse']) % data[info[0]]['size'];
+                drawCard(1, info[0]);
+                // Accounts for the fact that drawCard increments turn by 1 more person (we want to go to the next person)
+                data[info[0]]['turn'] = (curPlayerIndex - 1 * data[info[0]]['reverse']) % data[info[0]]['size'];
+
+                // Setting turn true for the next player
+                io.to(data[info[0]]['players'][data[info[0]]['turn']]['id']).emit('setTurn', true);
+
+                
+
+                return;
+                
+            }
+
+
             data[info[0]]['cardOnBoard'] = card;
             
             // Remove the card from the players hand
@@ -143,10 +173,75 @@ function onConnection(socket) {
                 io.to(data[info[0]]['players'][i]['id']).emit('currentCard',data[info[0]]['cardOnBoard']);
             }
 
+            // Setting the turn of the current player to false
+            io.to(data[info[0]]['players'][curPlayerIndex]['id']).emit('setTurn', false);
+
             //Move the turn
-            data[info[0]]['turn'] = (curPlayerIndex + 1) % data[info[0]]['size'];
+
+            if (curCardNum == skipCard) {
+                data[info[0]]['turn'] = (curPlayerIndex + 2 * data[info[0]]['reverse']) % data[info[0]]['size'];
+            }
+
+            else if (curCardNum == reverseCard) {
+                data[info[0]]['reverse'] *= -1;
+            }
+
+            else {
+                data[info[0]]['turn'] = (curPlayerIndex + 1 * data[info[0]]['reverse']) % data[info[0]]['size'];
+            }
+            
+            // Setting turn true for the next player
+            io.to(data[info[0]]['players'][data[info[0]]['turn']]['id']).emit('setTurn', true);
+    
         }
+
     });
+
+    // Went the current player has to draw a card
+    socket.on('drawCard', function(info) {
+
+        numCards = info[0];
+        roomName = info[1];
+
+        // Calling the function that will draw the card for the player
+        drawCard(numCards, roomName);
+
+        // Setting turn true for the next player
+        io.to(data[info[1]]['players'][data[info[1]]['turn']]['id']).emit('setTurn', true);
+    });
+}
+
+
+function drawCard(numCards, roomName) {
+
+    let curPlayerIndex = data[roomName]['turn'];
+
+    // Creating shallow copies of the game deck and the current players deck so that we can call them easily and adjust them
+    let gameDeck = data[roomName]['deck'];
+    let playerDeck = data[roomName]['players'][curPlayerIndex]['hand']
+
+    // Drawing the number of cards specified for the current player
+    for (let i = 0; i < numCards; ++i) {
+        playerDeck.push(gameDeck[0]);
+        // Removing the first element in the deck since the current player has drawn it
+        gameDeck.splice(0,1);
+    }
+
+    // Re-draw the deck of the current player
+
+    io.to(data[roomName]['players'][data[roomName]['turn']]['id']).emit('hand',data[roomName]['players'][curPlayerIndex]['hand']);
+
+    // Re-draw the current card for all the players
+    for (let i = 0; i < data[roomName]['players'].length; ++i){
+        io.to(data[roomName]['players'][i]['id']).emit('currentCard',data[roomName]['cardOnBoard']);
+    }
+
+    // Setting the turn of the current player to false
+    io.to(data[roomName]['players'][curPlayerIndex]['id']).emit('setTurn', false);
+
+    // Moving the turn
+    data[roomName]['turn'] = (curPlayerIndex + 1 * data[roomName]['reverse']) % data[roomName]['size'];
+    
 }
 
 
@@ -229,6 +324,8 @@ function startGame(roomName) {
             randDeck.push(specialCard);
         }
 
+        // DO CASEWORK FOR WHEN THE STARTING CARD IS A SPECIAL CARD
+
         // Updating the deck of the current room
         data[roomName]['deck'] = randDeck;
 
@@ -240,5 +337,7 @@ function startGame(roomName) {
             io.to(data[roomName]['players'][i]['id']).emit('hand',data[roomName]['players'][i]['hand']);
             io.to(data[roomName]['players'][i]['id']).emit('currentCard',data[roomName]['cardOnBoard']);
         }
+
+        io.to(data[roomName]['players'][0]['id']).emit('setTurn', true);
     }
 }
