@@ -43,6 +43,7 @@ for (let i = 1; i <= roomCount; i++) {
     room['turn'] = 0;
     room['cardOnBoard'] = 0;
     room['roomPlayerCount'] = 0;
+    room['namesOfPlayers'] = [];
 
     let players = [];
     for (let j = 0; j < roomLimit; j++) {
@@ -196,6 +197,7 @@ function drawCard(numCards, playerIndex, roomName) {
     io.to(data[roomName]['players'][data[roomName]['turn']]['id']).emit('hand',data[roomName]['players'][playerIndex]['hand']);
 }
 
+
 // Moves the turn to the next player and changes the boolean 'turn' for each player respectively
 function moveTurn(roomName, cardPlayed) {
 
@@ -231,7 +233,11 @@ function moveTurn(roomName, cardPlayed) {
 
     // Setting turn true for the next player
     io.to(data[roomName]['players'][nextPlayerIndex]['id']).emit('setTurn', true);
+
+    showTurn(roomName);
+    showPlayersCardCounts(roomName);
 }
+
 
 // Fixes the index of the current player if its negative so that we don't get an error when accessing the player array at that index
 function fixIndex(roomName) {
@@ -249,6 +255,7 @@ function countdown(roomName){
         startGame(roomName); //start game
     }
 }
+
 
 // Begins a game if the conditions to begin a game are met
 function startGame(roomName) {
@@ -268,69 +275,97 @@ function startGame(roomName) {
     data[roomName]['size'] = people;
 
     // If there are more than 2 people in the room, we start the game
-    if (people >= 2) {
-        console.log(roomName + ": Starting game");
+    if (people < 2) return;
+    console.log(roomName + ": Starting game");
 
-        // Storing the playerSockets as a set
-        let playerSockets = io.sockets.adapter.rooms.get(roomName);
+    // Storing the playerSockets as a set
+    let playerSockets = io.sockets.adapter.rooms.get(roomName);
 
-        let counter = 0;
+    let counter = 0;
 
-        // Updating the database with the sockets of each player in the room and their username
-        for (let item of playerSockets) {
-            data[roomName]['players'][counter]['id'] = item;
-            data[roomName]['players'][counter]['username'] = io.sockets.sockets.get(item).username;
-            counter += 1;
-        }
-
-        // Updating the data base with the number of people in the room
-        data[roomName]['roomPlayerCount'] = people;
-
-        // Generating a random deck for the room
-
-        // We create a deep copy of the deck so that whatever changes happen 
-        // to the deck of the current room dont happen in 'deck'
-        randDeck = [...deck];
-
-        // Shuffling the array using the Fisher-Yates shuffle algorithm
-        // https://javascript.info/task/shuffle
-        
-        for (let i = randDeck.length - 1; i > 0; i--) {
-            let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
-        
-            // swap elements array[i] and array[j]
-            [randDeck[i], randDeck[j]] = [randDeck[j], randDeck[i]];
-          }
-
-        // Dealing 7 cards to each player
-        for (let i = 0; i < people; i++) {
-            data[roomName]['players'][i]['hand'] = randDeck.slice(7 * i, 7 * (i+1));
-        }
-
-        // Making the deck the remaining cards
-        randDeck = randDeck.slice(7 * people, randDeck.length);
-
-        // While a wild card or a draw 4 wild card is at the top of the deck, we move it to the bottom of the deck
-        while (randDeck[0] >= 130) {
-            let specialCard = randDeck[0];
-            randDeck = randDeck.slice(1, randDeck.length);
-            randDeck.push(specialCard);
-        }
-
-        // DO CASEWORK FOR WHEN THE STARTING CARD IS A SPECIAL CARD
-
-        // Updating the deck of the current room
-        data[roomName]['deck'] = randDeck;
-
-        // update the starting card
-        data[roomName]['cardOnBoard'] = randDeck[0];
-
-        // tell the clients what their hands are
-        for (let i = 0; i < people; ++i){
-            io.to(data[roomName]['players'][i]['id']).emit('hand',data[roomName]['players'][i]['hand']);
-            io.to(data[roomName]['players'][i]['id']).emit('currentCard',data[roomName]['cardOnBoard']);
-        }
-
-        io.to(data[roomName]['players'][0]['id']).emit('setTurn', true);
+    // Updating the database with the sockets of each player in the room and their username
+    for (let item of playerSockets) {
+        data[roomName]['players'][counter]['id'] = item;
+        data[roomName]['players'][counter]['username'] = io.sockets.sockets.get(item).username;
+        counter += 1;
     }
+
+    // Updating the data base with the number of people in the room
+    data[roomName]['roomPlayerCount'] = people;
+
+    // Generating a random deck for the room
+
+    // We create a deep copy of the deck so that whatever changes happen 
+    // to the deck of the current room dont happen in 'deck'
+    randDeck = [...deck];
+
+    // Shuffling the array using the Fisher-Yates shuffle algorithm
+    // https://javascript.info/task/shuffle
+    
+    for (let i = randDeck.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
+    
+        // swap elements array[i] and array[j]
+        [randDeck[i], randDeck[j]] = [randDeck[j], randDeck[i]];
+      }
+
+    // Dealing 7 cards to each player
+    for (let i = 0; i < people; i++) {
+        data[roomName]['players'][i]['hand'] = randDeck.slice(7 * i, 7 * (i+1));
+    }
+
+    // Making the deck the remaining cards
+    randDeck = randDeck.slice(7 * people, randDeck.length);
+
+    // While a wild card or a draw 4 wild card is at the top of the deck, we move it to the bottom of the deck
+    while (randDeck[0] >= 130) {
+        let specialCard = randDeck[0];
+        randDeck = randDeck.slice(1, randDeck.length);
+        randDeck.push(specialCard);
+    }
+
+    // DO CASEWORK FOR WHEN THE STARTING CARD IS A SPECIAL CARD
+
+    // Updating the deck of the current room
+    data[roomName]['deck'] = randDeck;
+
+    // update the starting card
+    data[roomName]['cardOnBoard'] = randDeck[0];
+
+    // tell the clients what their hands are
+    for (let i = 0; i < people; ++i){
+        io.to(data[roomName]['players'][i]['id']).emit('hand',data[roomName]['players'][i]['hand']);
+        io.to(data[roomName]['players'][i]['id']).emit('currentCard',data[roomName]['cardOnBoard']);
+    }
+
+    //make the first player to join the room able to play
+    io.to(data[roomName]['players'][0]['id']).emit('setTurn', true);
+
+    initNames(roomName);
+    showTurn(roomName);
+    showPlayersCardCounts(roomName);
+}
+
+
+//initializes the array containing names of the players in the room (to be displayed in client-side)
+function initNames(roomName){
+    for (let i = 0; i < data[roomName]['size']; ++i){
+        data[roomName]['namesOfPlayers'].push(data[roomName]['players'][i]['username']);
+    }
+}
+
+
+//emits to all everyone in the room the index of the 
+function showTurn(roomName){
+    io.to(roomName).emit('showTurn', data[roomName]['turn']);
+}
+
+
+//emits to everyone in the room the number of cards of each player and their name
+function showPlayersCardCounts(roomName){
+    const playersCardCounts = [];
+    for (let i = 0; i < data[roomName]['size']; ++i){
+        playersCardCounts.push(data[roomName]['players'][i]['hand'].length);
+    }
+    io.to(roomName).emit('showPlayersCardCounts',data[roomName]['namesOfPlayers'],playersCardCounts);
 }

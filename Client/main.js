@@ -6,7 +6,7 @@ const ctx = canvas.getContext('2d'); //drawing context
 
 
 //cards
-const cardWidth = 120, cardHeight = 180; //must be in the ratio 2/3 to avoid distortion
+const cardWidth = 120, cardHeight = 180; //must be in the ratio 2:3 to avoid distortion
 const topMargin = 200, leftMargin = 80;
 const cardBackSide = new Image(); //image of the backside of an uno card
 const deck = []; //array of images of the cards in the deck
@@ -145,12 +145,15 @@ function onMouseClick(e) {
     }
 }
 
+
+//when the user connects, request for a room
 socket.on('connect', function (){
     socket.emit('requestRoom', username); //tell server to request room, passing in the username
     console.log('Room Requested');
 });
 
 
+//process the response of the room request: either you can join a room, or everything is full
 socket.on('responseRoom', function(roomName){
     if (roomName != 'error'){
         room = roomName;
@@ -165,11 +168,18 @@ socket.on('responseRoom', function(roomName){
 });
 
 
+//displays the countdown to the start of the game
 socket.on('countDown', function(secondsLeft){
-    ctx.clearRect(0,10,15,10);
-    ctx.fillText(secondsLeft, 0, 20)
+    ctx.clearRect(0,20,canvas.width,canvas.height); 
+    /*
+    to be changed
+    why can't filltext be at 0,20 and be cleared everytime (since clearrect clears from 0,20)?
+    */
+    ctx.fillText(`The game will start in ${secondsLeft} seconds.`, 0, 30)
 });
 
+
+//receives and displays the hand
 socket.on('hand', function(playerHand){
     console.log("Displaying the cards...");
     hand = playerHand; //update the hand of the client
@@ -189,15 +199,48 @@ socket.on('hand', function(playerHand){
     }
 });
 
+
+//receives and displays the current card
 socket.on('currentCard', function(currentCard){
     ctx.clearRect(leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
-    console.log("C",currentCard,deck[currentCard]);
     ctx.drawImage(deck[`deck${currentCard}.png`],leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
     ctx.drawImage(cardBackSide,leftMargin+4*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
 });
 
+
+//sets the turn variable to true or false (true if it is the player's turn, false otherwise)
 socket.on('setTurn', function(bool) {
     turn = bool;
 });
+
+
+// //displays the names of the other players
+// socket.on('showNames', function(namesOfPlayers){
+//     console.log("Players' names received.")
+//     for (let i = 0; i < namesOfPlayers.length; ++i){
+//         let posx = canvas.width - 80;
+//         let posy = 10 + i * 15;
+//         ctx.fillText(namesOfPlayers[i] + ": ",posx,posy);
+//     }
+// });
+
+//displays an indicator next to the name of whichever player's turn it is
+socket.on('showTurn', function(turnIndex){
+    ctx.clearRect(canvas.width-90,0,canvas.width,10+10*15);
+    ctx.fillText('>',canvas.width-90,10+turnIndex*15);
+});
+
+
+//displays the names and number of cards of each play in the room
+socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
+    for (let i = 0; i < playersCardCounts.length; ++i){
+        let posx = canvas.width - 80;
+        let posy = 10 + i * 15;
+        ctx.fillText(namesOfPlayers[i] + ": " + playersCardCounts[i],posx,posy);
+    }
+});
+
+
+socket.on()
 
 init();
