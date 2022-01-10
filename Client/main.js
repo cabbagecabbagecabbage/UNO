@@ -214,16 +214,6 @@ socket.on('setTurn', function(bool) {
 });
 
 
-// //displays the names of the other players
-// socket.on('showNames', function(namesOfPlayers){
-//     console.log("Players' names received.")
-//     for (let i = 0; i < namesOfPlayers.length; ++i){
-//         let posx = canvas.width - 80;
-//         let posy = 10 + i * 15;
-//         ctx.fillText(namesOfPlayers[i] + ": ",posx,posy);
-//     }
-// });
-
 //displays an indicator next to the name of whichever player's turn it is
 socket.on('showTurn', function(turnIndex){
     ctx.clearRect(canvas.width-90,0,canvas.width,10+10*15);
