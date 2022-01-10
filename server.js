@@ -324,7 +324,13 @@ function startGame(roomName) {
         randDeck.push(specialCard);
     }
 
-    // DO CASEWORK FOR WHEN THE STARTING CARD IS A SPECIAL CARD
+    // Since the first card can be a special card (other than the wildcards) we set current player's index to people-1 in the start so that if the first card
+    // is a special card, its 'played' on the first player
+    data[roomName]['turn'] = people - 1;
+    let currentCard = randDeck[0];
+    currentCard = (currentCard - (currentCard % 10)) / 10;
+
+    moveTurn(roomName, currentCard);
 
     // Updating the deck of the current room
     data[roomName]['deck'] = randDeck;
