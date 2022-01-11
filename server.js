@@ -174,10 +174,11 @@ function onConnection(socket) {
     // Went the current player has to draw a card
     socket.on('drawCard', function(info) {
 
-        numCards = info[0];
-        let playerIndex = info[1];
-        roomName = info[2];
-        
+        let numCards = info[0];
+        let username = info[1];
+        let roomName = info[2];
+        console.log(numCards,username,roomName);
+        let playerIndex = data[roomName]['namesOfPlayers'].indexOf(username);
 
         // Calling the function that will draw the card for the player
         drawCard(numCards, playerIndex, roomName);
@@ -189,8 +190,8 @@ function onConnection(socket) {
     });
 
     socket.on('changeColour', function(info) {
-        roomName = info[0]
-        colour = info[1];
+        let roomName = info[0]
+        let colour = info[1];
 
         data[roomName]['colour'] = colour;
 
@@ -218,6 +219,7 @@ function onConnection(socket) {
 
 
 function drawCard(numCards, playerIndex, roomName) {
+    console.log(roomName);
 
     // Creating shallow copies of the game deck and the current players deck so that we can call them easily and adjust them
     let gameDeck = data[roomName]['deck'];
@@ -247,7 +249,7 @@ function drawCard(numCards, playerIndex, roomName) {
 // Moves the turn to the next player and changes the boolean 'turn' for each player respectively
 function moveTurn(roomName, cardPlayed) {
 
-    curPlayerIndex = data[roomName]['turn'];
+    let curPlayerIndex = data[roomName]['turn'];
 
     // Setting the turn of the current player to false
     io.to(data[roomName]['players'][curPlayerIndex]['id']).emit('setTurn', false);
@@ -273,7 +275,7 @@ function moveTurn(roomName, cardPlayed) {
     // Makes sure data[roomName]['turn'] is non-negative
     fixIndex(roomName);
 
-    nextPlayerIndex = data[roomName]['turn'];
+    let nextPlayerIndex = data[roomName]['turn'];
 
     console.log("Made next player index as " + nextPlayerIndex);
 
