@@ -276,10 +276,26 @@ socket.on('countDown', function(secondsLeft){
 });
 
 
+//resizes the canvas (inspired by https://stackoverflow.com/questions/5517783/preventing-canvas-clear-when-resizing-window)
+function resize(height){
+    let curImage = ctx.getImageData(0,0,canvas.width,canvas.height);
+    canvas.height = height;
+    ctx.putImageData(curImage,0,0);
+    ctx.font = "16px Arial";
+}
+
+
 //receives and displays the hand
 socket.on('hand', function(playerHand){
     console.log("Displaying the cards...");
     hand = playerHand; //update the hand of the client
+    let rows = Math.floor((hand.length-1) / 7);
+    let requiredHeight = (rows+2.5)*cardHeight + topMargin;
+    console.log('requiredHeight',requiredHeight);
+    if (requiredHeight > canvas.height){
+        resize(requiredHeight);
+    }
+
     ctx.clearRect(0,topMargin,canvas.width,canvas.height); //clear the canvas space where the previous hand was drawn
     let row = 0.5, column = 0;
     for (let i = 0; i < hand.length; ++i){
