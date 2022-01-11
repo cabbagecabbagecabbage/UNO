@@ -19,6 +19,49 @@ const buttonY = topMargin-(cardHeight-77)/2-77;
 const buttonW = 110;
 const buttonH = 77;
 
+
+// https://www.w3schools.com/jsref/prop_style_visibility.asp -> Style Visibility Property for buttons
+
+
+// Red, Yellow, Green, Blue Buttons for when a player plays a wild card (Initially make them invisible -> only visible when a player plays a wild card)
+const redButton = document.createElement('button');
+redButton.innerText = 'Red';
+redButton.setAttribute('disabled', 'disabled');
+redButton.style.visibility = "hidden";
+document.body.appendChild(redButton);
+redButton.addEventListener("click", function() {
+    setColour(0);
+});
+
+const yellowButton = document.createElement('button');
+yellowButton.innerText = 'Yellow';
+yellowButton.setAttribute('disabled', 'disabled');
+yellowButton.style.visibility = "hidden";
+document.body.appendChild(yellowButton);
+yellowButton.addEventListener("click", function() {
+    setColour(1);
+});
+
+const greenButton = document.createElement('button');
+greenButton.innerText = 'Green';
+greenButton.setAttribute('disabled', 'disabled');
+greenButton.style.visibility = "hidden";
+document.body.appendChild(greenButton);
+greenButton.addEventListener("click", function() {
+    setColour(2);
+});
+
+const blueButton = document.createElement('button');
+blueButton.innerText = 'Blue';
+blueButton.setAttribute('disabled', 'disabled');
+blueButton.style.visibility = "hidden";
+document.body.appendChild(blueButton);
+blueButton.addEventListener("click", function() {
+    setColour(3);
+});
+
+
+let wildCard = 0; // Making a variable to store the number of a wild card if played
 let room;
 let hand = [];
 let turn = false;
@@ -135,10 +178,26 @@ function onMouseClick(e) {
             let cardY = topMargin+row*cardHeight;
             //check if the click is within the area of the card
             if (cardX < pageX && pageX < cardX + cardWidth && cardY < pageY && pageY < cardY + cardHeight){
-                //inform the server that we are playing this card
-                console.log(`${hand[i]} played`);
-                socket.emit('playingCard', [room, hand[i]]); 
-                return;
+                // if a wild card was played, we un-disable the change colour buttons
+                if (hand[i] >= 130) {
+                    wildCard = hand[i];
+
+                    redButton.disabled = false;
+                    redButton.style.visibility = "visible";
+                    yellowButton.disabled = false;
+                    yellowButton.style.visibility = "visible";
+                    greenButton.disabled = false;
+                    greenButton.style.visibility = "visible";
+                    blueButton.disabled = false;
+                    blueButton.style.visibility = "visible";
+                }
+                else {
+                    //inform the server that we are playing this card
+                    console.log(`${hand[i]} played`);
+                    socket.emit('playingCard', [room, hand[i]]); 
+                    return;
+                    // 
+                }
             }
             ++column;
         }
@@ -158,6 +217,25 @@ function onMouseClick(e) {
         console.log('uno button pressed');
         socket.emit('unoPress', [room, username]);
     }
+}
+
+function setColour(colour) {
+    // Changing the current colour of the room
+    socket.emit('changeColor', [room, colour]);
+
+    // Playing the wildCard now so that the next player can only make a turn after the current player has chosen a colour
+    //inform the server that we are playing this card
+    console.log(`${wildCard} played`);
+    socket.emit('playingCard', [room, wildCard]);
+
+    redButton.disabled = true;
+    redButton.style.visibility = "hidden";
+    yellowButton.disabled = true;
+    yellowButton.style.visibility = "hidden";
+    greenButton.disabled = true;
+    greenButton.style.visibility = "hidden";
+    blueButton.disabled = true;
+    blueButton.style.visibility = "hidden";
 }
 
 

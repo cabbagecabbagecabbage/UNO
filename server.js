@@ -16,7 +16,6 @@ const skipCard = 10;
 const reverseCard = 11;
 const draw2Card = 12;
 const wildCard = 13;
-const wildDraw4Card = 14;
 
 deck = [0,1,2,3];
 
@@ -41,6 +40,7 @@ for (let i = 1; i <= roomCount; i++) {
     // room['reverse'] will always equal 1 or -1 to indicate the direction the moves are going in
     room['reverse'] = 1;
     room['turn'] = 0; //index of the player that is currently playing
+    room['colour'] = 0;
     room['cardOnBoard'] = 0; //number representing the card on the board
     room['roomPlayerCount'] = 0;
     room['namesOfPlayers'] = [];
@@ -110,31 +110,33 @@ function onConnection(socket) {
         // Current card that is face-up
         let curCard = data[info[0]]['cardOnBoard'];
         let curCardNum = (curCard - (curCard % 10)) / 10;
-        let curCardClr = ((curCard % 10) % 4);
+        // let curCardClr = ((curCard % 10) % 4);
 
         // Extracting the digits in the name of the card
         let card = info[1];
 
-        // Do case for wild cards later
-
         let cardNum = (card - (card % 10)) / 10;
         let cardClr = ((card % 10) % 4);
 
-        // If the card numbers are the same or the card colours are the same, the move is valid
-        if (curCardNum == cardNum || curCardClr == cardClr) {
+        // If the card numbers are the same, the current colour is the same as the card that is tring to be played, or a wild/wild draw four card is played
+        // the move is valid
+        if (curCardNum == cardNum || data[info[0]]['colour'] == cardClr || cardNum >= 13) {
 
             data[info[0]]['cardOnBoard'] = card;
             
             // Remove the card from the players hand
             data[info[0]]['currentCard']  = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
             let cardIndex = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
+
+            // Updating the current colour of the card on the board in the room
+            data[info[0]]['colour'] = cardClr;
+
             data[info[0]]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1);
 
             //if the player has 1 card left, other players can call uno
             if (data[info[0]]['players'][curPlayerIndex]['hand'].length == 1){
                 data[info[0]]['players'][curPlayerIndex]['safe'] = false;
             }
-
 
             console.log("Player " + curPlayerIndex + " in " + info[0] + " has played " + info[1]);
 
@@ -153,11 +155,15 @@ function onConnection(socket) {
 
             // The special effects of a skipCard or reverseCard are covered in moveTurn
 
-            // Case when a draw2Card was played by the previous player
+            // Drawing 2 cards for the next player if a draw2Card is played
             if (cardNum == draw2Card) {
                 // Drawing to cards for the next person
                 drawCard(2, nextPlayerIndex, info[0]);
             }
+            else if (cardNum == wildCard && (card % 10) >= 4) {
+                drawCard(4, nextPlayerIndex, info[0]);
+            }
+
 
             console.log("It is now Player " + data[info[0]]['turn'] + "'s turn");
     
@@ -181,6 +187,12 @@ function onConnection(socket) {
         console.log("It is now Player " + data[roomName]['turn'] + "'s turn");
     });
 
+    socket.on('changeColour', function(info) {
+        roomName = info[0]
+        colour = info[1];
+
+        data[roomName]['colour'] = colour;
+    });
 
     socket.on('unoPress', function(info){
         let roomName = info[0], username = info[1];
@@ -355,13 +367,22 @@ function startGame(roomName) {
         randDeck.push(specialCard);
     }
 
-    // DO CASEWORK FOR WHEN THE STARTING CARD IS A SPECIAL CARD
+    // Since the first card can be a special card (other than the wildcards) we set current player's index to people-1 in the start so that if the first card
+    // is a special card, its 'played' on the first player
+    data[roomName]['turn'] = people - 1;
+    let currentCard = randDeck[0];
+    currentCard = (currentCard - (currentCard % 10)) / 10;
+
+    moveTurn(roomName, currentCard);
 
     // Updating the deck of the current room
     data[roomName]['deck'] = randDeck;
 
     // update the starting card
     data[roomName]['cardOnBoard'] = randDeck[0];
+
+    // Setting the current colour on the board in the room
+    data[roomName]['colour'] = ((randDeck[0] % 10) % 4);
 
     // tell the clients what their hands are
     for (let i = 0; i < people; ++i){
