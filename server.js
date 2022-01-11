@@ -175,8 +175,9 @@ function onConnection(socket) {
     socket.on('drawCard', function(info) {
 
         numCards = info[0];
-        roomName = info[1];
-        let playerIndex = data[roomName]['turn'];
+        let playerIndex = info[1];
+        roomName = info[2];
+        
 
         // Calling the function that will draw the card for the player
         drawCard(numCards, playerIndex, roomName);
@@ -192,6 +193,8 @@ function onConnection(socket) {
         colour = info[1];
 
         data[roomName]['colour'] = colour;
+
+        console.log("Changed colour to " + colour);
     });
 
     socket.on('unoPress', function(info){

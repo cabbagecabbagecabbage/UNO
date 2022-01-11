@@ -179,7 +179,9 @@ function onMouseClick(e) {
             //check if the click is within the area of the card
             if (cardX < pageX && pageX < cardX + cardWidth && cardY < pageY && pageY < cardY + cardHeight){
                 // if a wild card was played, we un-disable the change colour buttons
+                console.log("BEFORE");
                 if (hand[i] >= 130) {
+                    console.log("AFTER");
                     wildCard = hand[i];
 
                     redButton.disabled = false;
@@ -220,8 +222,9 @@ function onMouseClick(e) {
 }
 
 function setColour(colour) {
+    
     // Changing the current colour of the room
-    socket.emit('changeColor', [room, colour]);
+    socket.emit('changeColour', [room, colour]);
 
     // Playing the wildCard now so that the next player can only make a turn after the current player has chosen a colour
     //inform the server that we are playing this card
