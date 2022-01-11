@@ -16,7 +16,6 @@ const skipCard = 10;
 const reverseCard = 11;
 const draw2Card = 12;
 const wildCard = 13;
-const wildDraw4Card = 14;
 
 deck = [0,1,2,3];
 
@@ -41,6 +40,7 @@ for (let i = 1; i <= roomCount; i++) {
     // room['reverse'] will always equal 1 or -1 to indicate the direction the moves are going in
     room['reverse'] = 1;
     room['turn'] = 0;
+    room['colour'] = 0;
     room['cardOnBoard'] = 0;
     room['roomPlayerCount'] = 0;
     room['namesOfPlayers'] = [];
@@ -109,18 +109,16 @@ function onConnection(socket) {
         // Current card that is face-up
         let curCard = data[info[0]]['cardOnBoard'];
         let curCardNum = (curCard - (curCard % 10)) / 10;
-        let curCardClr = ((curCard % 10) % 4);
+        //let curCardClr = ((curCard % 10) % 4);
 
         // Extracting the digits in the name of the card
         let card = info[1];
-
-        // Do case for wild cards later
-
         let cardNum = (card - (card % 10)) / 10;
         let cardClr = ((card % 10) % 4);
 
-        // If the card numbers are the same or the card colours are the same, the move is valid
-        if (curCardNum == cardNum || curCardClr == cardClr) {
+        // If the card numbers are the same, the current colour is the same as the card that is tring to be played, or a wild/wild draw four card is played
+        // the move is valid
+        if (curCardNum == cardNum || data[info[0]]['colour'] == cardClr || cardNum >= 13) {
 
             data[info[0]]['cardOnBoard'] = card;
             
@@ -128,6 +126,9 @@ function onConnection(socket) {
             data[info[0]]['currentCard']  = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
             let cardIndex = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
             data[info[0]]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1);
+
+            // Updating the current colour of the card on the board in the room
+            data[info[0]]['colour'] = cardClr;
 
 
             console.log("Player " + curPlayerIndex + " in " + info[0] + " has played " + info[1]);
@@ -147,10 +148,14 @@ function onConnection(socket) {
 
             // The special effects of a skipCard or reverseCard are covered in moveTurn
 
-            // Case when a draw2Card was played by the previous player
+            // Drawing 2 cards for the next player if a draw2Card is played
             if (cardNum == draw2Card) {
                 // Drawing to cards for the next person
                 drawCard(2, nextPlayerIndex, info[0]);
+            }
+
+            else if (cardNum == wildCard && (card % 10) >= 4) {
+                drawCard(4, nextPlayerIndex, info[0]);
             }
 
             console.log("It is now Player " + data[info[0]]['turn'] + "'s turn");
@@ -173,6 +178,13 @@ function onConnection(socket) {
         moveTurn(roomName, 1111);
 
         console.log("It is now Player " + data[roomName]['turn'] + "'s turn");
+    });
+
+    socket.on('changeColour', function(info) {
+        roomName = info[0]
+        colour = info[1];
+
+        data[roomName]['colour'] = colour;
     });
 }
 
@@ -337,6 +349,9 @@ function startGame(roomName) {
 
     // update the starting card
     data[roomName]['cardOnBoard'] = randDeck[0];
+
+    // Setting the current colour on the board in the room
+    data[roomName]['colour'] = ((randDeck[0] % 10) % 4);
 
     // tell the clients what their hands are
     for (let i = 0; i < people; ++i){
