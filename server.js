@@ -177,7 +177,6 @@ function onConnection(socket) {
         let numCards = info[0];
         let username = info[1];
         let roomName = info[2];
-        console.log(numCards,username,roomName);
         let playerIndex = data[roomName]['namesOfPlayers'].indexOf(username);
 
         // Calling the function that will draw the card for the player
