@@ -210,7 +210,7 @@ function onMouseClick(e) {
             topMargin-cardHeight < pageY &&
             pageY < topMargin){
             console.log(`drawing a card`);
-            socket.emit('drawCard', [1,username,room]);
+            socket.emit('drawCard', [1,room]);
             return;
         }
     }

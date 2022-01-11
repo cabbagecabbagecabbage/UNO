@@ -158,10 +158,10 @@ function onConnection(socket) {
             // Drawing 2 cards for the next player if a draw2Card is played
             if (cardNum == draw2Card) {
                 // Drawing to cards for the next person
-                drawCard(2, nextPlayerIndex, info[0]);
+                drawCard(2, data[info[0]]['turn'], info[0]);
             }
             else if (cardNum == wildCard && (card % 10) >= 4) {
-                drawCard(4, nextPlayerIndex, info[0]);
+                drawCard(4, data[info[0]]['turn'], info[0]);
             }
 
 
@@ -178,6 +178,9 @@ function onConnection(socket) {
         let username = info[1];
         let roomName = info[2];
         let playerIndex = data[roomName]['namesOfPlayers'].indexOf(username);
+        let roomName = info[1];
+        console.log(numCards,roomName);
+        let playerIndex = data[roomName]['turn'];
 
         // Calling the function that will draw the card for the player
         drawCard(numCards, playerIndex, roomName);
