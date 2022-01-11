@@ -66,6 +66,7 @@ let room;
 let hand = [];
 let turn = false;
 let username;
+let index;
 
 
 function init() {
@@ -217,7 +218,7 @@ function onMouseClick(e) {
     //if the uno button is clicked
     if (buttonX <= pageX && pageX <= buttonX + buttonW && buttonY <= pageY && pageY <= buttonY + buttonH){
         console.log('uno button pressed');
-        socket.emit('unoPress', [room, username]);
+        socket.emit('unoPress', [room, index]);
     }
 }
 
@@ -317,6 +318,12 @@ socket.on('setTurn', function(bool) {
 socket.on('showTurn', function(turnIndex){
     ctx.clearRect(canvas.width-100,0,canvas.width,15+10*20);
     ctx.fillText('>',canvas.width-100,15+turnIndex*20);
+});
+
+
+//receives the player index from the server once the game room has been decided
+socket.on('receiveIndex', function(playerIndex){
+    index = playerIndex;
 });
 
 

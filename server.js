@@ -198,18 +198,18 @@ function onConnection(socket) {
     });
 
     socket.on('unoPress', function(info){
-        let roomName = info[0], username = info[1];
-        let tplayerIndex = data[roomName]['namesOfPlayers'].indexOf(username);
-        console.log(`${tplayerIndex} pressed the uno button`);
+        let roomName = info[0];
+        let playerIndex = info[1];
+        console.log(`${playerIndex} pressed the uno button`);
 
         //makes player safe if they are unsafe
-        data[roomName]['players'][tplayerIndex]['safe'] = true;
+        data[roomName]['players'][playerIndex]['safe'] = true;
 
         //makes unsafe players in the room pick up
         for (let i = 0; i < data[roomName]['size']; ++i){
             if (data[roomName]['players'][i]['safe'] == false){
                 //if they catch another player, make them draw 2 and set them to safe again
-                console.log(`${username} (index ${tplayerIndex}) said "UNO" before ${data[roomName]['players'][i]['username']} (index ${i}), making them draw 2 cards.`)
+                console.log(`${data[roomName]['namesOfPlayers'][playerIndex]} (index ${playerIndex}) said "UNO" before ${data[roomName]['players'][i]['username']} (index ${i}), making them draw 2 cards.`)
                 drawCard(2,i,roomName);
             }
         }
@@ -392,6 +392,7 @@ function startGame(roomName) {
     for (let i = 0; i < people; ++i){
         io.to(data[roomName]['players'][i]['id']).emit('hand',data[roomName]['players'][i]['hand']);
         io.to(data[roomName]['players'][i]['id']).emit('currentCard',data[roomName]['cardOnBoard']);
+        io.to(data[roomName]['players'][i]['id']).emit('receiveIndex',i);
     }
 
     //make the first player to join the room able to play
