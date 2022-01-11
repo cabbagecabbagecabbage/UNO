@@ -9,7 +9,15 @@ const ctx = canvas.getContext('2d'); //drawing context
 const cardWidth = 120, cardHeight = 180; //must be in the ratio 2:3 to avoid distortion
 const topMargin = 200, leftMargin = 80;
 const cardBackSide = new Image(); //image of the backside of an uno card
+const unoButton = new Image(); //image of the uno button
 const deck = []; //array of images of the cards in the deck
+
+
+//button parameters
+const buttonX = leftMargin+5*cardWidth;
+const buttonY = topMargin-(cardHeight-77)/2-77;
+const buttonW = 110;
+const buttonH = 77;
 
 let room;
 let hand = [];
@@ -22,8 +30,9 @@ function init() {
 
 	//background, font, loading images
 	canvas.style.backgroundColor = "#03fce8";
-	ctx.font = "16px : Arial";
+	ctx.font = "16px Arial";
 	cardBackSide.src = "images/uno.png";
+    unoButton.src = "images/unoButton.png";
 	for (let i = 0; i <= 13; ++i){
 		for (let j = 0; j <= 7; ++j){
 			deck[`deck${i*10+j}.png`] = new Image();
@@ -112,9 +121,10 @@ function onMouseClick(e) {
     rect = canvas.getBoundingClientRect();
     let pageX = e.pageX - rect.left, pageY = e.pageY - rect.top;
     console.log(pageX,pageY);
+    //if it is the player's turn...
     if (turn){
         //check for playing a card
-        let column = 0, row = 0;
+        let column = 0, row = 0.5;
         for (let i = 0; i < hand.length; ++i){
             if (column == 7){
                 //go to next row
@@ -143,6 +153,11 @@ function onMouseClick(e) {
             return;
         }
     }
+    //if the uno button is clicked
+    if (buttonX <= pageX && pageX <= buttonX + buttonW && buttonY <= pageY && pageY <= buttonY + buttonH){
+        console.log('uno button pressed');
+        socket.emit('unoPress', [room, username]);
+    }
 }
 
 
@@ -158,8 +173,8 @@ socket.on('responseRoom', function(roomName){
     if (roomName != 'error'){
         room = roomName;
         console.log(`${username} successfully joined ${room}`);
-        ctx.fillText(roomName, 100, 10);
-        ctx.fillText(username, 0, 10);
+        ctx.fillText(roomName, 100, 15);
+        ctx.fillText(username, 0, 15);
     }
     else {
         socket.disconnect();
@@ -170,12 +185,12 @@ socket.on('responseRoom', function(roomName){
 
 //displays the countdown to the start of the game
 socket.on('countDown', function(secondsLeft){
-    ctx.clearRect(0,20,canvas.width,canvas.height); 
+    ctx.clearRect(0,25,canvas.width,canvas.height); 
     /*
     to be changed
     why can't filltext be at 0,20 and be cleared everytime (since clearrect clears from 0,20)?
     */
-    ctx.fillText(`The game will start in ${secondsLeft} seconds.`, 0, 30)
+    ctx.fillText(`The game will start in ${secondsLeft} seconds.`, 0, 40);
 });
 
 
@@ -184,7 +199,7 @@ socket.on('hand', function(playerHand){
     console.log("Displaying the cards...");
     hand = playerHand; //update the hand of the client
     ctx.clearRect(0,topMargin,canvas.width,canvas.height); //clear the canvas space where the previous hand was drawn
-    let row = 0, column = 0;
+    let row = 0.5, column = 0;
     for (let i = 0; i < hand.length; ++i){
         if (column == 7){
             //go to next row
@@ -200,11 +215,14 @@ socket.on('hand', function(playerHand){
 });
 
 
-//receives and displays the current card
+//receives and displays the current card, displays the deck and uno button
 socket.on('currentCard', function(currentCard){
-    ctx.clearRect(leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
-    ctx.drawImage(deck[`deck${currentCard}.png`],leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
-    ctx.drawImage(cardBackSide,leftMargin+4*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);
+    ctx.clearRect(leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight); //clearing the space for current card
+    ctx.drawImage(deck[`deck${currentCard}.png`],leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight); //drawing the current card
+
+    ctx.drawImage(cardBackSide,leftMargin+4*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);//drawing the back of card (representing the deck)
+
+    ctx.drawImage(unoButton,buttonX,buttonY,buttonW,buttonH); //drawing the uno button
 });
 
 
@@ -216,16 +234,17 @@ socket.on('setTurn', function(bool) {
 
 //displays an indicator next to the name of whichever player's turn it is
 socket.on('showTurn', function(turnIndex){
-    ctx.clearRect(canvas.width-90,0,canvas.width,10+10*15);
-    ctx.fillText('>',canvas.width-90,10+turnIndex*15);
+    ctx.clearRect(canvas.width-100,0,canvas.width,15+10*20);
+    ctx.fillText('>',canvas.width-100,15+turnIndex*20);
 });
 
 
 //displays the names and number of cards of each play in the room
 socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
+    ctx.clearRect(canvas.width-90,0,canvas.width,15+10*20);
     for (let i = 0; i < playersCardCounts.length; ++i){
-        let posx = canvas.width - 80;
-        let posy = 10 + i * 15;
+        let posx = canvas.width - 90;
+        let posy = 15 + i * 20;
         ctx.fillText(namesOfPlayers[i] + ": " + playersCardCounts[i],posx,posy);
     }
 });

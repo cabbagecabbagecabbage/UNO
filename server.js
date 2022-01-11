@@ -40,8 +40,8 @@ for (let i = 1; i <= roomCount; i++) {
     room['deck'] = [];
     // room['reverse'] will always equal 1 or -1 to indicate the direction the moves are going in
     room['reverse'] = 1;
-    room['turn'] = 0;
-    room['cardOnBoard'] = 0;
+    room['turn'] = 0; //index of the player that is currently playing
+    room['cardOnBoard'] = 0; //number representing the card on the board
     room['roomPlayerCount'] = 0;
     room['namesOfPlayers'] = [];
 
@@ -51,6 +51,7 @@ for (let i = 1; i <= roomCount; i++) {
         players[j]['id'] = 0;
         players[j]['username'] = "";
         players[j]['hand'] = [];
+        players[j]['safe'] = true;
     }
     room['players'] = players;
     data['Room '+i] = room;
@@ -129,6 +130,11 @@ function onConnection(socket) {
             let cardIndex = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
             data[info[0]]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1);
 
+            //if the player has 1 card left, other players can call uno
+            if (data[info[0]]['players'][curPlayerIndex]['hand'].length == 1){
+                data[info[0]]['players'][curPlayerIndex]['safe'] = false;
+            }
+
 
             console.log("Player " + curPlayerIndex + " in " + info[0] + " has played " + info[1]);
 
@@ -164,7 +170,7 @@ function onConnection(socket) {
 
         numCards = info[0];
         roomName = info[1];
-        playerIndex = data[roomName]['turn'];
+        let playerIndex = data[roomName]['turn'];
 
         // Calling the function that will draw the card for the player
         drawCard(numCards, playerIndex, roomName);
@@ -174,6 +180,25 @@ function onConnection(socket) {
 
         console.log("It is now Player " + data[roomName]['turn'] + "'s turn");
     });
+
+
+    socket.on('unoPress', function(info){
+        let roomName = info[0], username = info[1];
+        let tplayerIndex = data[roomName]['namesOfPlayers'].indexOf(username);
+        console.log(`${tplayerIndex} pressed the uno button`);
+
+        //makes player safe if they are unsafe
+        data[roomName]['players'][tplayerIndex]['safe'] = true;
+
+        //makes unsafe players in the room pick up
+        for (let i = 0; i < data[roomName]['size']; ++i){
+            if (data[roomName]['players'][i]['safe'] == false){
+                //if they catch another player, make them draw 2 and set them to safe again
+                console.log(`${username} (index ${tplayerIndex}) said "UNO" before ${data[roomName]['players'][i]['username']} (index ${i}), making them draw 2 cards.`)
+                drawCard(2,i,roomName);
+            }
+        }
+    });
 }
 
 
@@ -181,7 +206,7 @@ function drawCard(numCards, playerIndex, roomName) {
 
     // Creating shallow copies of the game deck and the current players deck so that we can call them easily and adjust them
     let gameDeck = data[roomName]['deck'];
-    let playerDeck = data[roomName]['players'][playerIndex]['hand']
+    let playerDeck = data[roomName]['players'][playerIndex]['hand'];
 
     // Drawing the number of cards specified for the current player
     for (let i = 0; i < numCards; ++i) {
@@ -193,8 +218,14 @@ function drawCard(numCards, playerIndex, roomName) {
         gameDeck.splice(0,1);
     }
 
+    if (data[roomName]['players'][playerIndex]['hand'].length != 1){
+        data[roomName]['players'][playerIndex]['safe'] = true;
+    }
+
     // Re-draw the deck of the player who drew the card(s)
-    io.to(data[roomName]['players'][data[roomName]['turn']]['id']).emit('hand',data[roomName]['players'][playerIndex]['hand']);
+    io.to(data[roomName]['players'][playerIndex]['id']).emit('hand',data[roomName]['players'][playerIndex]['hand']);
+
+    showPlayersCardCounts(roomName);
 }
 
 
