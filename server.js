@@ -175,9 +175,6 @@ function onConnection(socket) {
     socket.on('drawCard', function(info) {
 
         let numCards = info[0];
-        let username = info[1];
-        let roomName = info[2];
-        let playerIndex = data[roomName]['namesOfPlayers'].indexOf(username);
         let roomName = info[1];
         console.log(numCards,roomName);
         let playerIndex = data[roomName]['turn'];
