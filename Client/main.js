@@ -73,6 +73,7 @@ blueButton.addEventListener("click", function() {
 
 
 let wildCard = 0; // Making a variable to store the number of a wild card if played
+let wildCardPlayed = false // Boolean storing if a wild card is played and the change colour buttons are visible
 let room;
 let hand = [];
 let turn = false;
@@ -191,11 +192,12 @@ function onMouseClick(e) {
             //check if the click is within the area of the card
             if (cardX < pageX && pageX < cardX + cardWidth && cardY < pageY && pageY < cardY + cardHeight){
                 // if a wild card was played, we un-disable the change colour buttons
-                console.log("BEFORE");
-                if (hand[i] >= 130) {
-                    console.log("AFTER");
+                if (hand[i] >= 130 && ! wildCardPlayed) {
+
+                    wildCardPlayed = true;
                     wildCard = hand[i];
 
+                    // Making the buttons visible and clickable
                     redButton.disabled = false;
                     redButton.style.visibility = "visible";
                     yellowButton.disabled = false;
@@ -251,6 +253,8 @@ function setColour(colour) {
     greenButton.style.visibility = "hidden";
     blueButton.disabled = true;
     blueButton.style.visibility = "hidden";
+
+    wildCardPlayed = false;
 }
 
 
@@ -369,6 +373,11 @@ socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
     }
 });
 
+socket.on('showColour',function(curColour){
+    console.log(`showing the colour ${curColour}`);
+    ctx.fillStyle = colours[curColour];
+    ctx.fillRect(colourX, colourY, colourW, colourH);
+});
 
 socket.on('showColour',function(curColour){
     console.log(`showing the colour ${curColour}`);

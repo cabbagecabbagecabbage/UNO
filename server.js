@@ -43,6 +43,7 @@ for (let i = 1; i <= roomCount; i++) {
 
     room['size'] = 0;
     room['deck'] = [];
+    room['discardPile'] = [];
     // room['reverse'] will always equal 1 or -1 to indicate the direction the moves are going in
     room['reverse'] = 1;
     room['turn'] = 0; //index of the player that is currently playing
@@ -128,16 +129,22 @@ function onConnection(socket) {
         // the move is valid
         if (curCardNum == cardNum || data[info[0]]['colour'] == cardClr || cardNum >= 13) {
 
-            data[info[0]]['cardOnBoard'] = card;
             
-            // Remove the card from the players hand
-            data[info[0]]['currentCard']  = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
-            let cardIndex = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]);
+            data[info[0]]['discardPile'].push(curCard) // Sending the current card on the board to the discard pile
+
+            console.log("Sent " + curCard + " to the discardPile.");
+
+            data[info[0]]['cardOnBoard'] = card; // updating the current card on the board
+            
+            let cardIndex = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]); // Getting the index of the card that the player played
+            data[info[0]]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1); // Remove the card from the players hand
 
             // Updating the current colour of the card on the board in the room
             data[info[0]]['colour'] = cardClr;
             io.to(info[0]).emit('showColour',cardClr);
 
+            io.to(info[0]).emit('showColour',cardClr);	
+            
             data[info[0]]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1);
 
             //if the player has 1 card left, other players can call uno
@@ -146,7 +153,6 @@ function onConnection(socket) {
             }
 
             console.log("Player " + curPlayerIndex + " in " + info[0] + " has played " + info[1]);
-
 
             // Re-draw the deck of the current player (remove the card that the player just played)
             io.to(data[info[0]]['players'][data[info[0]]['turn']]['id']).emit('hand',data[info[0]]['players'][curPlayerIndex]['hand']);
@@ -167,15 +173,14 @@ function onConnection(socket) {
                 // Drawing to cards for the next person
                 drawCard(2, data[info[0]]['turn'], info[0]);
             }
+
+            // If a wildDraw4Card was played (it can be distinguished from a normal wildCard based on its last digit)
             else if (cardNum == wildCard && (card % 10) >= 4) {
                 drawCard(4, data[info[0]]['turn'], info[0]);
             }
 
-
             console.log("It is now Player " + data[info[0]]['turn'] + "'s turn");
-    
         }
-
     });
 
     // Went the current player has to draw a card
@@ -248,6 +253,13 @@ function drawCard(numCards, playerIndex, roomName) {
 
     // Drawing the number of cards specified for the current player
     for (let i = 0; i < numCards; ++i) {
+
+        // If the deck is empty, we refill it with the discard pile
+        if (data[roomName]['deck'].length == 0) {
+            refillDeck(roomName);
+        }
+
+
         playerDeck.push(gameDeck[0]);
 
         console.log("Player " + playerIndex + " drew " + gameDeck[0]);
@@ -313,6 +325,33 @@ function fixIndex(roomName) {
     data[roomName]['turn'] = (data[roomName]['turn'] + 10 * data[roomName]['size']) % data[roomName]['size'];
 }
 
+function refillDeck(roomName) {
+    // Copying the cards in the discardPile to the deck
+    for (let i = 0; i < data[roomName]['discardPile'].length; ++i) {
+        data[roomName]['deck'].push(data[roomName]['discardPile'][i]);
+    }
+    data[roomName]['discardPile'] = []; // Emptying the discardPile
+    randomizeDeck(roomName);
+
+    console.log("The deck was refilled with the discard pile.");
+}
+
+
+function randomizeDeck(roomName) {
+    // Shuffling the array using the Fisher-Yates shuffle algorithm
+    // https://javascript.info/task/shuffle
+
+    randDeck = data[roomName]['deck'];
+    
+    for (let i = randDeck.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
+    
+        // swap elements array[i] and array[j]
+        [randDeck[i], randDeck[j]] = [randDeck[j], randDeck[i]];
+    }
+
+    data[roomName]['deck'] = randDeck;
+}
 
 function countdown(roomName){
     let secondsLeft = data[roomName]['timer']['secondsLeft']--; //decrease secondsLeft
@@ -366,17 +405,11 @@ function startGame(roomName) {
 
     // We create a deep copy of the deck so that whatever changes happen 
     // to the deck of the current room dont happen in 'deck'
-    randDeck = [...deck];
+    data[roomName]['deck'] = [...deck];
 
-    // Shuffling the array using the Fisher-Yates shuffle algorithm
-    // https://javascript.info/task/shuffle
-    
-    for (let i = randDeck.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
-    
-        // swap elements array[i] and array[j]
-        [randDeck[i], randDeck[j]] = [randDeck[j], randDeck[i]];
-      }
+    randomizeDeck(roomName);
+
+    let randDeck = data[roomName]['deck'];
 
     // Dealing 7 cards to each player
     for (let i = 0; i < people; i++) {
