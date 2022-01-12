@@ -19,6 +19,17 @@ const buttonY = topMargin-(cardHeight-77)/2-77;
 const buttonW = 110;
 const buttonH = 77;
 
+//colour rectangle parameters
+const colourW = 77; //matching the height of the uno button
+const colourH = 77;
+const colourX = leftMargin + 2*cardWidth + (cardWidth - colourW) / 2;
+const colourY = topMargin-(cardHeight-colourH)/2-colourH;
+const colours = {
+    0: 'red',
+    1: 'yellow',
+    2: 'green',
+    3: 'blue'
+};
 
 // https://www.w3schools.com/jsref/prop_style_visibility.asp -> Style Visibility Property for buttons
 
@@ -255,8 +266,9 @@ socket.on('responseRoom', function(roomName){
     if (roomName != 'error'){
         room = roomName;
         console.log(`${username} successfully joined ${room}`);
-        ctx.fillText(roomName, 100, 15);
-        ctx.fillText(username, 0, 15);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = 'black';
+        ctx.fillText(username + "        " + roomName, 0, 15);
     }
     else {
         socket.disconnect();
@@ -333,6 +345,7 @@ socket.on('setTurn', function(bool) {
 //displays an indicator next to the name of whichever player's turn it is
 socket.on('showTurn', function(turnIndex){
     ctx.clearRect(canvas.width-100,0,canvas.width,15+10*20);
+    ctx.fillStyle = 'black';
     ctx.fillText('>',canvas.width-100,15+turnIndex*20);
 });
 
@@ -346,11 +359,19 @@ socket.on('receiveIndex', function(playerIndex){
 //displays the names and number of cards of each play in the room
 socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
     ctx.clearRect(canvas.width-90,0,canvas.width,15+10*20);
+    ctx.fillStyle = 'black';
     for (let i = 0; i < playersCardCounts.length; ++i){
         let posx = canvas.width - 90;
         let posy = 15 + i * 20;
         ctx.fillText(namesOfPlayers[i] + ": " + playersCardCounts[i],posx,posy);
     }
+});
+
+
+socket.on('showColour',function(curColour){
+    console.log(`showing the colour ${curColour}`);
+    ctx.fillStyle = colours[curColour];
+    ctx.fillRect(colourX, colourY, colourW, colourH);
 });
 
 

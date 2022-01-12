@@ -136,6 +136,7 @@ function onConnection(socket) {
 
             // Updating the current colour of the card on the board in the room
             data[info[0]]['colour'] = cardClr;
+            io.to(info[0]).emit('showColour',cardClr);
 
             data[info[0]]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1);
 
@@ -199,6 +200,7 @@ function onConnection(socket) {
         let colour = info[1];
 
         data[roomName]['colour'] = colour;
+        io.emit('showColour',colour);
 
         if (colour == RED) {
             console.log("Changed colour to red.");
@@ -405,6 +407,7 @@ function startGame(roomName) {
 
     // Setting the current colour on the board in the room
     data[roomName]['colour'] = ((randDeck[0] % 10) % 4);
+    io.to(roomName).emit('showColour',data[roomName]['colour']);
 
     // Moving the turn to the first player (or the second if the first card is a skipCard)
     moveTurn(roomName, currentCardNum);
