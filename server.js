@@ -144,8 +144,6 @@ function onConnection(socket) {
             io.to(info[0]).emit('showColour',cardClr);
 
             io.to(info[0]).emit('showColour',cardClr);	
-            
-            data[info[0]]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1);
 
             //if the player has 1 card left, other players can call uno
             if (data[info[0]]['players'][curPlayerIndex]['hand'].length == 1){

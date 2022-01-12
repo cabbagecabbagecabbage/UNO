@@ -178,7 +178,7 @@ function onMouseClick(e) {
     let pageX = e.pageX - rect.left, pageY = e.pageY - rect.top;
     console.log(pageX,pageY);
     //if it is the player's turn...
-    if (turn){
+    if (turn && ! wildCardPlayed){
         //check for playing a card
         let column = 0, row = 0.5;
         for (let i = 0; i < hand.length; ++i){
@@ -192,7 +192,7 @@ function onMouseClick(e) {
             //check if the click is within the area of the card
             if (cardX < pageX && pageX < cardX + cardWidth && cardY < pageY && pageY < cardY + cardHeight){
                 // if a wild card was played, we un-disable the change colour buttons
-                if (hand[i] >= 130 && ! wildCardPlayed) {
+                if (hand[i] >= 130) {
 
                     wildCardPlayed = true;
                     wildCard = hand[i];
