@@ -17,6 +17,12 @@ const reverseCard = 11;
 const draw2Card = 12;
 const wildCard = 13;
 
+// Colours
+const RED = 0;
+const YELLOW = 1;
+const GREEN = 2;
+const BLUE = 3;
+
 deck = [0,1,2,3];
 
 // Adding all the other card names to the deck
@@ -194,7 +200,21 @@ function onConnection(socket) {
 
         data[roomName]['colour'] = colour;
 
-        console.log("Changed colour to " + colour);
+        if (colour == RED) {
+            console.log("Changed colour to red.");
+        }
+
+        else if (colour == YELLOW) {
+            console.log("Changed colour to yellow.");
+        }
+
+        else if (colour == GREEN) {
+            console.log("Changed colour to green.");
+        }
+
+        else {
+            console.log("Changed colour to blue.");
+        }
     });
 
     socket.on('unoPress', function(info){

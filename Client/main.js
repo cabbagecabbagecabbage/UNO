@@ -223,14 +223,14 @@ function onMouseClick(e) {
 }
 
 function setColour(colour) {
-    
-    // Changing the current colour of the room
-    socket.emit('changeColour', [room, colour]);
 
     // Playing the wildCard now so that the next player can only make a turn after the current player has chosen a colour
     //inform the server that we are playing this card
     console.log(`${wildCard} played`);
     socket.emit('playingCard', [room, wildCard]);
+
+    // Changing the current colour of the room
+    socket.emit('changeColour', [room, colour]);
 
     redButton.disabled = true;
     redButton.style.visibility = "hidden";
