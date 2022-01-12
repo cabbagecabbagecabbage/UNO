@@ -395,9 +395,7 @@ function startGame(roomName) {
     // is a special card, its 'played' on the first player
     data[roomName]['turn'] = people - 1;
     let currentCard = randDeck[0];
-    currentCard = (currentCard - (currentCard % 10)) / 10;
-
-    moveTurn(roomName, currentCard);
+    let currentCardNum = (currentCard - (currentCard % 10)) / 10;
 
     // Updating the deck of the current room
     data[roomName]['deck'] = randDeck;
@@ -408,15 +406,20 @@ function startGame(roomName) {
     // Setting the current colour on the board in the room
     data[roomName]['colour'] = ((randDeck[0] % 10) % 4);
 
+    // Moving the turn to the first player (or the second if the first card is a skipCard)
+    moveTurn(roomName, currentCardNum);
+
+    // The only card that is greater than 120 and can be the start card is the draw2Card. If so, the first player draws two cards.
+    if (currentCard >= 120) {
+        drawCard(2, data[roomName]['turn'], roomName);
+    }
+
     // tell the clients what their hands are
     for (let i = 0; i < people; ++i){
         io.to(data[roomName]['players'][i]['id']).emit('hand',data[roomName]['players'][i]['hand']);
         io.to(data[roomName]['players'][i]['id']).emit('currentCard',data[roomName]['cardOnBoard']);
         io.to(data[roomName]['players'][i]['id']).emit('receiveIndex',i);
     }
-
-    //make the first player to join the room able to play
-    io.to(data[roomName]['players'][0]['id']).emit('setTurn', true);
 
     initNames(roomName);
     showTurn(roomName);
