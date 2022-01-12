@@ -284,7 +284,9 @@ socket.on('countDown', function(secondsLeft){
     to be changed
     why can't filltext be at 0,20 and be cleared everytime (since clearrect clears from 0,20)?
     */
-    ctx.fillText(`The game will start in ${secondsLeft} seconds.`, 0, 40);
+    if (secondsLeft != 0){
+        ctx.fillText(`The game will start in ${secondsLeft} seconds.`, 0, 40);
+    }
 });
 
 
