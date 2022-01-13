@@ -106,10 +106,18 @@ function init() {
 	document.addEventListener('click', onMouseClick);
 
 	checkCookie()
-
-	//connect to server
-	socket.connect();
 }
+
+
+//connects to server and requests a room
+function joinGame(){
+    //connect to server
+    socket.connect();
+    //request for a room
+    socket.emit('requestRoom', username); //tell server to request room, passing in the username
+    console.log('Room Requested');
+}
+
 
 /*
 name: the name of the cookie (what sort of information we are storing)
@@ -171,7 +179,9 @@ function checkCookie() {
           icon: 'success',
           showConfirmButton: false,
           timer: 1500
-        })
+        }).then((result) => {
+            joinGame();
+        });
     }
 
     // Otherwise we request the username
@@ -190,10 +200,11 @@ function checkCookie() {
             console.log(result.value, username);
             // If the username entered isn't an empty string or null 
             // we set the cookie with the username entered
-            if (result.value){
+            if (result.isConfirmed && result.value){
                 username = result.value;
                 console.log('username updated:',username);
                 setCookie("username", username, 1);
+                joinGame();
             }
         });
     }
@@ -292,13 +303,6 @@ socket.on('playableCard', function(){
       showConfirmButton: true,
     });
 })
-
-
-//when the user connects, request for a room
-socket.on('connect', function (){
-    socket.emit('requestRoom', username); //tell server to request room, passing in the username
-    console.log('Room Requested');
-});
 
 
 //process the response of the room request: either you can join a room, or everything is full
@@ -431,7 +435,7 @@ socket.on('endGame', function(winner){
       confirmButtonText: 'Play Again', 
     }).then((result) => {
         if (result.isConfirmed){
-            socket.connect();
+            joinGame();
         }
     });
 });
