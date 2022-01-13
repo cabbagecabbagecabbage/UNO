@@ -176,12 +176,26 @@ function checkCookie() {
 
     // Otherwise we request the username
     else {
-        username = prompt("Please enter your name:", "");
-        // If the username entered isn't an empty string or null 
-        // we set the cookie with the username entered
-        if (username != "" && username != null) {
-            setCookie("username", username, 1);
-        }
+        // username = prompt("Please enter your name:", "");
+        Swal.fire({
+          title: "Enter your name:",
+          input: 'text',
+          inputValue: 'Anonymous Player',
+          inputAttributes: {
+            autocapitalize: 'off'
+          },
+          confirmButtonText: 'Play',
+          allowOutsideClick: false,
+        }).then((result) => {
+            console.log(result.value, username);
+            // If the username entered isn't an empty string or null 
+            // we set the cookie with the username entered
+            if (result.value){
+                username = result.value;
+                console.log('username updated:',username);
+                setCookie("username", username, 1);
+            }
+        });
     }
 }
 
@@ -270,7 +284,13 @@ function setColour(colour) {
 }
 
 socket.on('playableCard', function(){
-    alert("You can not draw when you have a playable card.");
+    // alert("You can not draw when you have a playable card.");
+    Swal.fire({
+      title: 'Oops!',
+      text: 'You cannot draw when when you have a playable card.',
+      icon: 'error',
+      showConfirmButton: true,
+    });
 })
 
 
@@ -292,7 +312,13 @@ socket.on('responseRoom', function(roomName){
     }
     else {
         socket.disconnect();
-        alert("All rooms are full! Try again later");
+        // alert("All rooms are full! Try again later");
+        Swal.fire({
+          title: 'Oops!',
+          text: 'All rooms are full! Try again later',
+          icon: 'error',
+          showConfirmButton: true,
+        });
     }
 });
 
@@ -392,11 +418,22 @@ socket.on('showColour', function(curColour){
 });
 
 socket.on('endGame', function(winner){
+
     socket.disconnect();
     ctx.clearRect(canvas.width-100,0,canvas.width,15+10*20);
     ctx.clearRect(0,20,canvas.width,canvas.height);
-    ctx.fillStyle = 'black';
-    ctx.fillText(`${winner} won the game!`,0,60);
+    // ctx.fillStyle = 'black';
+    // ctx.fillText(`${winner} won the game!`,0,60);
+    Swal.fire({
+      title: 'Game Over!',
+      text: `${winner} won the game!`,
+      showConfirmButton: true,
+      confirmButtonText: 'Play Again', 
+    }).then((result) => {
+        if (result.isConfirmed){
+            socket.connect();
+        }
+    });
 });
 
 
