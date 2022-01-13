@@ -165,7 +165,13 @@ function checkCookie() {
 
     // If the username isn't empty, we welcome the user again by using an alert box
     if (username != "") {
-        alert("Welcome again " + username);
+        // alert("Welcome again " + username);
+        Swal.fire({
+          title: `Welcome back, ${username}.`,
+          icon: 'success',
+          showConfirmButton: false,
+          timer: 1500
+        })
     }
 
     // Otherwise we request the username
