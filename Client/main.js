@@ -257,6 +257,10 @@ function setColour(colour) {
     wildCardPlayed = false;
 }
 
+socket.on('playableCard', function(){
+    alert("You can not draw when you have a playable card.");
+})
+
 
 //when the user connects, request for a room
 socket.on('connect', function (){
