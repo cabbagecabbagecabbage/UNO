@@ -449,11 +449,11 @@ function startGame(roomName) {
 
     // Dealing 7 cards to each player
     for (let i = 0; i < people; i++) {
-        data[roomName]['players'][i]['hand'] = randDeck.slice(1 * i, 1 * (i+1));
+        data[roomName]['players'][i]['hand'] = randDeck.slice(7 * i, 7 * (i+1));
     }
 
     // Making the deck the remaining cards
-    randDeck = randDeck.slice(1 * people, randDeck.length);
+    randDeck = randDeck.slice(7 * people, randDeck.length);
 
     // While a wild card or a draw 4 wild card is at the top of the deck, we move it to the bottom of the deck
     while (randDeck[0] >= 130) {

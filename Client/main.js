@@ -34,10 +34,13 @@ const colours = {
 // https://www.w3schools.com/jsref/prop_style_visibility.asp -> Style Visibility Property for buttons
 
 
-// Red, Yellow, Green, Blue Buttons for when a player plays a wild card (Initially make them invisible -> only visible when a player plays a wild card)
+// Red, Yellow, Green, Blue Buttons for when a player plays a wild card 
+// Initially make them invisible -> only visible when a player plays a wild card
+// https://stackoverflow.com/questions/53263825/add-css-to-a-javascript-button -> linking buttons added here to main.css through the property 'className'
 const redButton = document.createElement('button');
 redButton.innerText = 'Red';
 redButton.setAttribute('disabled', 'disabled');
+redButton.className = "red_button";
 redButton.style.visibility = "hidden";
 document.body.appendChild(redButton);
 redButton.addEventListener("click", function() {
@@ -47,6 +50,7 @@ redButton.addEventListener("click", function() {
 const yellowButton = document.createElement('button');
 yellowButton.innerText = 'Yellow';
 yellowButton.setAttribute('disabled', 'disabled');
+yellowButton.className = 'yellow_button';
 yellowButton.style.visibility = "hidden";
 document.body.appendChild(yellowButton);
 yellowButton.addEventListener("click", function() {
@@ -56,6 +60,7 @@ yellowButton.addEventListener("click", function() {
 const greenButton = document.createElement('button');
 greenButton.innerText = 'Green';
 greenButton.setAttribute('disabled', 'disabled');
+greenButton.className = 'green_button';
 greenButton.style.visibility = "hidden";
 document.body.appendChild(greenButton);
 greenButton.addEventListener("click", function() {
@@ -65,6 +70,7 @@ greenButton.addEventListener("click", function() {
 const blueButton = document.createElement('button');
 blueButton.innerText = 'Blue';
 blueButton.setAttribute('disabled', 'disabled');
+blueButton.className = 'blue_button';
 blueButton.style.visibility = "hidden";
 document.body.appendChild(blueButton);
 blueButton.addEventListener("click", function() {
