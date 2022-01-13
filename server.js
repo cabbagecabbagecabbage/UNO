@@ -32,10 +32,10 @@ for (let i = 1; i <= 13; i++) {
     }
 }
 
-
-//initialize the "database"
+//initialize the rooms
 let data = [];
-for (let i = 1; i <= roomCount; i++) {
+
+function initRoom(roomName){
     let room = [];
     room['timer'] = [];
     room['timer']['id'] = 0; //setInterval() returns an id, which can be used to clearInterval()
@@ -61,9 +61,12 @@ for (let i = 1; i <= roomCount; i++) {
         players[j]['safe'] = true;
     }
     room['players'] = players;
-    data['Room '+i] = room;
+    data[roomName] = room;
 }
 
+for (let i = 1; i <= roomCount; i++) {
+    initRoom('Room '+i);
+}
 
 
 function onConnection(socket) {
@@ -143,12 +146,7 @@ function onConnection(socket) {
             data[info[0]]['colour'] = cardClr;
             io.to(info[0]).emit('showColour',cardClr);
 
-            io.to(info[0]).emit('showColour',cardClr);	
-
-            //if the player has 1 card left, other players can call uno
-            if (data[info[0]]['players'][curPlayerIndex]['hand'].length == 1){
-                data[info[0]]['players'][curPlayerIndex]['safe'] = false;
-            }
+            io.to(info[0]).emit('showColour',cardClr);
 
             console.log("Player " + curPlayerIndex + " in " + info[0] + " has played " + info[1]);
 
@@ -156,8 +154,19 @@ function onConnection(socket) {
             io.to(data[info[0]]['players'][data[info[0]]['turn']]['id']).emit('hand',data[info[0]]['players'][curPlayerIndex]['hand']);
 
             // Re-draw the current card for all the players
-            for (let i = 0; i < data[info[0]]['players'].length; ++i){
-                io.to(data[info[0]]['players'][i]['id']).emit('currentCard',data[info[0]]['cardOnBoard']);
+            io.to(info[0]).emit('currentCard',data[info[0]]['cardOnBoard']);
+
+
+            //if the player has 0 cards left, they win the game
+            if (data[info[0]]['players'][curPlayerIndex]['hand'].length == 0){
+                io.to(info[0]).emit('endGame', data[info[0]]['players'][curPlayerIndex]['username']);
+                initRoom(info[0]);
+                return;
+            }
+
+            //if the player has 1 card left, other players can call uno
+            if (data[info[0]]['players'][curPlayerIndex]['hand'].length == 1){
+                data[info[0]]['players'][curPlayerIndex]['safe'] = false;
             }
 
             //Move the turn
@@ -411,11 +420,11 @@ function startGame(roomName) {
 
     // Dealing 7 cards to each player
     for (let i = 0; i < people; i++) {
-        data[roomName]['players'][i]['hand'] = randDeck.slice(7 * i, 7 * (i+1));
+        data[roomName]['players'][i]['hand'] = randDeck.slice(1 * i, 1 * (i+1));
     }
 
     // Making the deck the remaining cards
-    randDeck = randDeck.slice(7 * people, randDeck.length);
+    randDeck = randDeck.slice(1 * people, randDeck.length);
 
     // While a wild card or a draw 4 wild card is at the top of the deck, we move it to the bottom of the deck
     while (randDeck[0] >= 130) {

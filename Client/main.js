@@ -283,11 +283,7 @@ socket.on('responseRoom', function(roomName){
 
 //displays the countdown to the start of the game
 socket.on('countDown', function(secondsLeft){
-    ctx.clearRect(0,25,canvas.width,canvas.height); 
-    /*
-    to be changed
-    why can't filltext be at 0,20 and be cleared everytime (since clearrect clears from 0,20)?
-    */
+    ctx.clearRect(0,25,canvas.width,canvas.height);
     if (secondsLeft != 0){
         ctx.fillText(`The game will start in ${secondsLeft} seconds.`, 0, 40);
     }
@@ -373,19 +369,19 @@ socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
     }
 });
 
-socket.on('showColour',function(curColour){
+socket.on('showColour', function(curColour){
     console.log(`showing the colour ${curColour}`);
     ctx.fillStyle = colours[curColour];
     ctx.fillRect(colourX, colourY, colourW, colourH);
 });
 
-socket.on('showColour',function(curColour){
-    console.log(`showing the colour ${curColour}`);
-    ctx.fillStyle = colours[curColour];
-    ctx.fillRect(colourX, colourY, colourW, colourH);
+socket.on('endGame', function(winner){
+    socket.disconnect();
+    ctx.clearRect(canvas.width-100,0,canvas.width,15+10*20);
+    ctx.clearRect(0,20,canvas.width,canvas.height);
+    ctx.fillStyle = 'black';
+    ctx.fillText(`${winner} won the game!`,0,60);
 });
 
-
-socket.on()
 
 init();
