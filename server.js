@@ -189,6 +189,18 @@ function onConnection(socket) {
         console.log(numCards,roomName);
         let playerIndex = data[roomName]['turn'];
 
+        // A player can only draw a card if they dont have a playable card
+        
+        if (numCards == 1) {
+            for (const card of data[roomName]['players'][playerIndex]['hand']) {
+
+                if (isValidMove(card, roomName)) {
+                    io.to(data[roomName]['players'][playerIndex]['id']).emit('playableCard');
+                    return;
+                }
+            }
+        }
+
         // Calling the function that will draw the card for the player
         drawCard(numCards, playerIndex, roomName);
 
@@ -242,8 +254,25 @@ function onConnection(socket) {
 }
 
 
+function isValidMove(card, roomName) {
+
+    // Current card that is face-up
+    let curCard = data[roomName]['cardOnBoard'];
+    let curCardNum = (curCard - (curCard % 10)) / 10;
+
+    // Extracting the digits in card number
+    let cardNum = (card - (card % 10)) / 10;
+    let cardClr = ((card % 10) % 4);
+
+    if (curCardNum == cardNum || data[roomName]['colour'] == cardClr || cardNum >= 13) {
+        return true;
+    }
+
+    return false;
+}
+
+
 function drawCard(numCards, playerIndex, roomName) {
-    console.log(roomName);
 
     // Creating shallow copies of the game deck and the current players deck so that we can call them easily and adjust them
     let gameDeck = data[roomName]['deck'];
