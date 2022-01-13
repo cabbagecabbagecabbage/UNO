@@ -112,81 +112,80 @@ function onConnection(socket) {
 
     socket.on('playingCard', function(info) {
 
-        let curPlayerIndex = data[info[0]]['turn'];
+        let roomName = info[0];
+        let card = info[1];
 
-        console.log("Player " + curPlayerIndex + " in " + info[0] + " is trying to play " + info[1]);
+        let curPlayerIndex = data[roomName]['turn'];
 
+        console.log("Player " + curPlayerIndex + " in " + roomName + " is trying to play " + info[1]);
 
         // Current card that is face-up
-        let curCard = data[info[0]]['cardOnBoard'];
+        let curCard = data[roomName]['cardOnBoard'];
         let curCardNum = (curCard - (curCard % 10)) / 10;
         // let curCardClr = ((curCard % 10) % 4);
 
-        // Extracting the digits in the name of the card
-        let card = info[1];
+        // Calculating the type of card that the user is trying to play and its colour using the digits in its name
+        let cardNum = (card - (card % 10)) / 10; // First two digits represent the type of card
+        let cardClr = ((card % 10) % 4); // Second two digits represent the colour of the card
 
-        let cardNum = (card - (card % 10)) / 10;
-        let cardClr = ((card % 10) % 4);
-
-        // If the card numbers are the same, the current colour is the same as the card that is tring to be played, or a wild/wild draw four card is played
-        // the move is valid
-        if (curCardNum == cardNum || data[info[0]]['colour'] == cardClr || cardNum >= 13) {
+        // We play the card if the move is valid
+        if (isValidMove(card, roomName)) {
 
             
-            data[info[0]]['discardPile'].push(curCard) // Sending the current card on the board to the discard pile
+            data[roomName]['discardPile'].push(curCard) // Sending the current card on the board to the discard pile
 
             console.log("Sent " + curCard + " to the discardPile.");
 
-            data[info[0]]['cardOnBoard'] = card; // updating the current card on the board
+            data[roomName]['cardOnBoard'] = card; // updating the current card on the board
             
-            let cardIndex = data[info[0]]['players'][curPlayerIndex]['hand'].indexOf(info[1]); // Getting the index of the card that the player played
-            data[info[0]]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1); // Remove the card from the players hand
+            let cardIndex = data[roomName]['players'][curPlayerIndex]['hand'].indexOf(info[1]); // Getting the index of the card that the player played
+            data[roomName]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1); // Remove the card from the players hand
 
             // Updating the current colour of the card on the board in the room
-            data[info[0]]['colour'] = cardClr;
-            io.to(info[0]).emit('showColour',cardClr);
+            data[roomName]['colour'] = cardClr;
+            io.to(roomName).emit('showColour',cardClr);
 
-            io.to(info[0]).emit('showColour',cardClr);
+            io.to(roomName).emit('showColour',cardClr);
 
-            console.log("Player " + curPlayerIndex + " in " + info[0] + " has played " + info[1]);
+            console.log("Player " + curPlayerIndex + " in " + roomName + " has played " + info[1]);
 
             // Re-draw the deck of the current player (remove the card that the player just played)
-            io.to(data[info[0]]['players'][data[info[0]]['turn']]['id']).emit('hand',data[info[0]]['players'][curPlayerIndex]['hand']);
+            io.to(data[roomName]['players'][data[roomName]['turn']]['id']).emit('hand',data[roomName]['players'][curPlayerIndex]['hand']);
 
             // Re-draw the current card for all the players
-            io.to(info[0]).emit('currentCard',data[info[0]]['cardOnBoard']);
+            io.to(roomName).emit('currentCard',data[roomName]['cardOnBoard']);
 
 
             //if the player has 0 cards left, they win the game
-            if (data[info[0]]['players'][curPlayerIndex]['hand'].length == 0){
-                io.to(info[0]).emit('endGame', data[info[0]]['players'][curPlayerIndex]['username']);
-                initRoom(info[0]);
+            if (data[roomName]['players'][curPlayerIndex]['hand'].length == 0){
+                io.to(roomName).emit('endGame', data[roomName]['players'][curPlayerIndex]['username']);
+                initRoom(roomName);
                 return;
             }
 
             //if the player has 1 card left, other players can call uno
-            if (data[info[0]]['players'][curPlayerIndex]['hand'].length == 1){
-                data[info[0]]['players'][curPlayerIndex]['safe'] = false;
+            if (data[roomName]['players'][curPlayerIndex]['hand'].length == 1){
+                data[roomName]['players'][curPlayerIndex]['safe'] = false;
             }
 
             //Move the turn
             // We only want to pass in the first two digits denoting the type of card and not the colour of the card
-            moveTurn(info[0], cardNum);
+            moveTurn(roomName, cardNum);
 
             // The special effects of a skipCard or reverseCard are covered in moveTurn
 
             // Drawing 2 cards for the next player if a draw2Card is played
             if (cardNum == draw2Card) {
                 // Drawing to cards for the next person
-                drawCard(2, data[info[0]]['turn'], info[0]);
+                drawCard(2, data[roomName]['turn'], roomName);
             }
 
             // If a wildDraw4Card was played (it can be distinguished from a normal wildCard based on its last digit)
             else if (cardNum == wildCard && (card % 10) >= 4) {
-                drawCard(4, data[info[0]]['turn'], info[0]);
+                drawCard(4, data[roomName]['turn'], roomName);
             }
 
-            console.log("It is now Player " + data[info[0]]['turn'] + "'s turn");
+            console.log("It is now Player " + data[roomName]['turn'] + "'s turn");
         }
     });
 
