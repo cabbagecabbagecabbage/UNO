@@ -199,7 +199,7 @@ function onConnection(socket) {
         // A player can only draw a card if they dont have a playable card
         
         if (numCards == 1) {
-            for (let card of data[roomName]['players'][playerIndex]['hand']) {
+            for (const card of data[roomName]['players'][playerIndex]['hand']) {
 
                 if (isValidMove(card, roomName)) {
                     io.to(data[roomName]['players'][playerIndex]['id']).emit('playableCard');
@@ -495,11 +495,11 @@ function startGame(roomName) {
 
     // Dealing 7 cards to each player
     for (let i = 0; i < people; i++) {
-        data[roomName]['players'][i]['hand'] = randDeck.slice(7 * i, 7 * (i+1));
+        data[roomName]['players'][i]['hand'] = randDeck.slice(1 * i, 1 * (i+1));
     }
 
     // Making the deck the remaining cards
-    randDeck = randDeck.slice(7 * people, randDeck.length);
+    randDeck = randDeck.slice(1 * people, randDeck.length);
 
     // While a wild card or a draw 4 wild card is at the top of the deck, we move it to the bottom of the deck
     while (randDeck[0] >= 130) {
@@ -561,9 +561,7 @@ function showTurn(roomName){
 
 //emits to everyone in the room the number of cards of each player and their name
 function showPlayersCardCounts(roomName){
-
-    console.log(data[roomName]['roomPlayerCount']);
-    let playersCardCounts = [];
+    const playersCardCounts = [];
     for (let i = 0; i < data[roomName]['roomPlayerCount']; ++i){
         playersCardCounts.push(data[roomName]['players'][i]['hand'].length);
     }

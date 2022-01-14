@@ -106,10 +106,18 @@ function init() {
 	document.addEventListener('click', onMouseClick);
 
 	checkCookie()
-
-	//connect to server
-	socket.connect();
 }
+
+
+//connects to server and requests a room
+function joinGame(){
+    //connect to server
+    socket.connect();
+    //request for a room
+    socket.emit('requestRoom', username); //tell server to request room, passing in the username
+    console.log('Room Requested');
+}
+
 
 /*
 name: the name of the cookie (what sort of information we are storing)
@@ -171,17 +179,34 @@ function checkCookie() {
           icon: 'success',
           showConfirmButton: false,
           timer: 1500
-        })
+        }).then((result) => {
+            joinGame();
+        });
     }
 
     // Otherwise we request the username
     else {
-        username = prompt("Please enter your name:", "");
-        // If the username entered isn't an empty string or null 
-        // we set the cookie with the username entered
-        if (username != "" && username != null) {
-            setCookie("username", username, 1);
-        }
+        // username = prompt("Please enter your name:", "");
+        Swal.fire({
+          title: "Enter your name:",
+          input: 'text',
+          inputValue: 'Anonymous Player',
+          inputAttributes: {
+            autocapitalize: 'off'
+          },
+          confirmButtonText: 'Play',
+          allowOutsideClick: false,
+        }).then((result) => {
+            console.log(result.value, username);
+            // If the username entered isn't an empty string or null 
+            // we set the cookie with the username entered
+            if (result.isConfirmed && result.value){
+                username = result.value;
+                console.log('username updated:',username);
+                setCookie("username", username, 1);
+                joinGame();
+            }
+        });
     }
 }
 
@@ -270,15 +295,14 @@ function setColour(colour) {
 }
 
 socket.on('playableCard', function(){
-    alert("You can not draw when you have a playable card.");
+    // alert("You can not draw when you have a playable card.");
+    Swal.fire({
+      title: 'Oops!',
+      text: 'You cannot draw when when you have a playable card.',
+      icon: 'error',
+      showConfirmButton: true,
+    });
 })
-
-
-//when the user connects, request for a room
-socket.on('connect', function (){
-    socket.emit('requestRoom', username); //tell server to request room, passing in the username
-    console.log('Room Requested');
-});
 
 
 //process the response of the room request: either you can join a room, or everything is full
@@ -292,7 +316,13 @@ socket.on('responseRoom', function(roomName){
     }
     else {
         socket.disconnect();
-        alert("All rooms are full! Try again later");
+        // alert("All rooms are full! Try again later");
+        Swal.fire({
+          title: 'Oops!',
+          text: 'All rooms are full! Try again later',
+          icon: 'error',
+          showConfirmButton: true,
+        });
     }
 });
 
@@ -385,23 +415,36 @@ socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
     }
 });
 
+
 socket.on('showColour', function(curColour){
     console.log(`showing the colour ${curColour}`);
     ctx.fillStyle = colours[curColour];
     ctx.fillRect(colourX, colourY, colourW, colourH);
 });
 
-socket.on('playerDisconnected', function(playerName){
-    alert(playerName + " has left the game.");
-})
 
 socket.on('endGame', function(winner){
     socket.disconnect();
     ctx.clearRect(canvas.width-100,0,canvas.width,15+10*20);
     ctx.clearRect(0,20,canvas.width,canvas.height);
-    ctx.fillStyle = 'black';
-    ctx.fillText(`${winner} won the game!`,0,60);
+    // ctx.fillStyle = 'black';
+    // ctx.fillText(`${winner} won the game!`,0,60);
+    Swal.fire({
+      title: 'Game Over!',
+      text: `${winner} won the game!`,
+      showConfirmButton: true,
+      confirmButtonText: 'Play Again', 
+    }).then((result) => {
+        if (result.isConfirmed){
+            joinGame();
+        }
+    });
 });
+
+
+socket.on('playerDisconnected', function(playerName){
+    alert(playerName + " has left the game.");
+})
 
 
 init();
