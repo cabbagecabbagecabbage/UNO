@@ -186,6 +186,10 @@ function onConnection(socket) {
 
             console.log("It is now Player " + data[roomName]['turn'] + "'s turn");
         }
+        else {
+            //otherwise, inform the client
+            io.to(data[roomName]['players'][data[roomName]['turn']]['id']).emit('playCardFailed');
+        }
     });
 
     // Went the current player has to draw a card

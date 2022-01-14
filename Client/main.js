@@ -168,6 +168,14 @@ function getCookie(cookieName) {
     return "";
 }
 
+
+//generating a random number in a range [min,max)
+//https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range
+function genRand(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
+
 function checkCookie() {
     username = getCookie("username");
 
@@ -190,9 +198,10 @@ function checkCookie() {
         Swal.fire({
           title: "Enter your name:",
           input: 'text',
-          inputValue: 'Anonymous Player',
+          inputValue: 'Player'+genRand(1000,10000),
           inputAttributes: {
-            autocapitalize: 'off'
+            autocapitalize: 'off',
+            maxlength: 10,
           },
           confirmButtonText: 'Play',
           allowOutsideClick: false,
@@ -210,6 +219,7 @@ function checkCookie() {
     }
 }
 
+//mouse click listener function
 function onMouseClick(e) {
     rect = canvas.getBoundingClientRect();
     let pageX = e.pageX - rect.left, pageY = e.pageY - rect.top;
@@ -272,6 +282,30 @@ function onMouseClick(e) {
     }
 }
 
+
+socket.on('playCardFailed', function(){
+    Swal.fire({
+      title: 'Oops!',
+      text: "You can't play that card",
+      icon: 'error',
+      showConfirmButton: false,
+      timer: 1000
+    });
+});
+
+
+socket.on('playableCard', function(){
+    // alert("You can not draw when you have a playable card.");
+    Swal.fire({
+      title: 'Oops!',
+      text: 'You cannot draw when when you have a playable card.',
+      icon: 'error',
+      showConfirmButton: false,
+      timer: 1000
+    });
+})
+
+
 function setColour(colour) {
 
     // Playing the wildCard now so that the next player can only make a turn after the current player has chosen a colour
@@ -293,17 +327,6 @@ function setColour(colour) {
 
     wildCardPlayed = false;
 }
-
-socket.on('playableCard', function(){
-    // alert("You can not draw when you have a playable card.");
-    Swal.fire({
-      title: 'Oops!',
-      text: 'You cannot draw when when you have a playable card.',
-      icon: 'error',
-      showConfirmButton: true,
-    });
-})
-
 
 //process the response of the room request: either you can join a room, or everything is full
 socket.on('responseRoom', function(roomName){
@@ -355,7 +378,6 @@ socket.on('hand', function(playerHand){
     if (requiredHeight > canvas.height){
         resize(requiredHeight);
     }
-
     ctx.clearRect(0,topMargin,canvas.width,canvas.height); //clear the canvas space where the previous hand was drawn
     let row = 0.5, column = 0;
     for (let i = 0; i < hand.length; ++i){
@@ -387,14 +409,22 @@ socket.on('currentCard', function(currentCard){
 //sets the turn variable to true or false (true if it is the player's turn, false otherwise)
 socket.on('setTurn', function(bool) {
     turn = bool;
+    //inform the user it is their turn
+    if (turn){
+        Swal.fire({
+            title: "It's your turn!",
+            showConfirmButton: false,
+            timer: 1000
+        })
+    }
 });
 
 
 //displays an indicator next to the name of whichever player's turn it is
 socket.on('showTurn', function(turnIndex){
-    ctx.clearRect(canvas.width-100,0,canvas.width,15+10*20);
+    ctx.clearRect(canvas.width-130,0,canvas.width,15+10*20);
     ctx.fillStyle = 'black';
-    ctx.fillText('>',canvas.width-100,15+turnIndex*20);
+    ctx.fillText('>',canvas.width-130,15+turnIndex*20);
 });
 
 
@@ -406,10 +436,10 @@ socket.on('receiveIndex', function(playerIndex){
 
 //displays the names and number of cards of each play in the room
 socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
-    ctx.clearRect(canvas.width-90,0,canvas.width,15+10*20);
+    ctx.clearRect(canvas.width-110,0,canvas.width,15+10*20);
     ctx.fillStyle = 'black';
     for (let i = 0; i < playersCardCounts.length; ++i){
-        let posx = canvas.width - 90;
+        let posx = canvas.width - 110;
         let posy = 15 + i * 20;
         ctx.fillText(namesOfPlayers[i] + ": " + playersCardCounts[i],posx,posy);
     }
@@ -425,7 +455,7 @@ socket.on('showColour', function(curColour){
 
 socket.on('endGame', function(winner){
     socket.disconnect();
-    ctx.clearRect(canvas.width-100,0,canvas.width,15+10*20);
+    ctx.clearRect(canvas.width-130,0,canvas.width,15+10*20);
     ctx.clearRect(0,20,canvas.width,canvas.height);
     // ctx.fillStyle = 'black';
     // ctx.fillText(`${winner} won the game!`,0,60);
@@ -443,7 +473,13 @@ socket.on('endGame', function(winner){
 
 
 socket.on('playerDisconnected', function(playerName){
-    alert(playerName + " has left the game.");
+    // alert(playerName + " has left the game.");
+    Swal.fire({
+        title: 'Someone left...',
+        text: `${playerName} has left the game.`,
+        icon: 'error',
+        timer: 1000
+    })
 })
 
 
