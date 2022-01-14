@@ -277,9 +277,15 @@ function onConnection(socket) {
                     console.log(data[room]['players'][player]['username'] + " has disconnected.");
                     io.to(room).emit("playerDisconnected", data[room]['players'][player]['username']);
 
-                    // If it was the turn of the player who left, we move the turn to the next person
+                    // If the player who left comes before the current player in the array of players then we subtract one from the turn
+                    if (player < data[room]['turn']) {
+                        data[room]['turn'] -= 1;
+                    }
+
+                    // If it was the turn of the player who left, we move the turn to the next person and subtract one from the turn
                     if (data[room]['turn'] == player) {
                         moveTurn(room, 1111); // Passing in a card that will not flag any special cases in moveTurn
+                        data[room]['turn'] -= 1;
                     }
 
                     // Deleting the player from the room
@@ -303,7 +309,6 @@ function onConnection(socket) {
                     showTurn(room);
 
                     showPlayersCardCounts(room);
-
 
                     return;
                 }
@@ -368,6 +373,8 @@ function drawCard(numCards, playerIndex, roomName) {
 // Moves the turn to the next player and changes the boolean 'turn' for each player respectively
 function moveTurn(roomName, cardPlayed) {
 
+    // Making sure that the index received is non-negative and mod the number of people in the room (may be unnecessary now but delete later)
+    fixIndex(roomName);
     let curPlayerIndex = data[roomName]['turn'];
 
     // Setting the turn of the current player to false
