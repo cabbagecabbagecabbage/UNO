@@ -213,6 +213,8 @@ function onConnection(socket) {
             }
         }
 
+        io.to(roomName).emit('drawCardSound');
+
         // Calling the function that will draw the card for the player
         drawCard(numCards, playerIndex, roomName);
 

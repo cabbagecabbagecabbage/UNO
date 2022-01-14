@@ -4,6 +4,9 @@ const canvas = document.getElementById('canvas'); //canvas of html page
 var rect;
 const ctx = canvas.getContext('2d'); //drawing context
 
+// Sound effects
+var drawCardSound = new sound("sound-effects/Card-flip-sound-effect.mp3")
+
 
 //cards
 const cardWidth = 120, cardHeight = 180; //must be in the ratio 2:3 to avoid distortion
@@ -401,6 +404,27 @@ socket.on('hand', function(playerHand){
     }
 });
 
+
+socket.on('drawCardSound', function() {
+    drawCardSound.play();
+})
+
+
+// https://www.w3schools.com/graphics/game_sound.asp --> code for adding sound effects
+function sound(src) {
+    this.sound = document.createElement("audio");
+    this.sound.src = src;
+    this.sound.setAttribute("preload", "auto");
+    this.sound.setAttribute("controls", "none");
+    this.sound.style.display = "none";
+    document.body.appendChild(this.sound);
+    this.play = function(){
+      this.sound.play();
+    }
+    this.stop = function(){
+      this.sound.pause();
+    }
+  }
 
 //receives and displays the current card, displays the deck and uno button
 socket.on('currentCard', function(currentCard){
