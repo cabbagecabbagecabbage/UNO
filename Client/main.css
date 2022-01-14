@@ -1,51 +1,172 @@
+/* https://getcssscan.com/css-buttons-examples --> Code for buttons with some adjustments made. 
+   https://www.schemecolor.com/uno.php         --> Codes for uno card hex values. 
+*/
+
+
 .red_button {
-    width: 100px;
-    height: 30px;
-    position: absolute;
-    top: 20%;
-    transform: translateY(-50%);
-    background-color: rgb(255,0,0);
-    outline: none;
-    display: block;
-    padding: 30px 0;
+  font-size: 16px;
+  font-weight: 200;
+  display: block;
+  letter-spacing: 1px;
+  padding: 13px 20px 13px;
+  outline: 0;
+  border: 1px solid black;
+  cursor: pointer;
+  position: absolute;
+  top: 20%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
 }
 
+.red_button:after {
+  content: "";
+  background-color: #D72600;
+  width: 100%;
+  z-index: -1;
+  position: absolute;
+  height: 100%;
+  top: 7px;
+  left: 7px;
+  transition: 0.2s;
+}
+
+.red_button:hover:after {
+  top: 0px;
+  left: 0px;
+}
+
+@media (min-width: 768px) {
+  .red_button {
+    padding: 13px 50px 13px;
+  }
+}
+
+
 .yellow_button {
-    width: 100px;
-    height: 30px;
+    font-size: 16px;
+    font-weight: 200;
+    display: block;
+    letter-spacing: 1px;
+    padding: 13px 20px 13px;
+    outline: 0;
+    border: 1px solid black;
+    cursor: pointer;
     position: absolute;
     top: 30%;
     transform: translateY(-50%);
-    background-color: rgb(255,255,0);
-    outline: none;
-    display: block;
-    padding: 30px 0;
-}
+    background-color: rgba(0, 0, 0, 0);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  
+  .yellow_button:after {
+    content: "";
+    background-color: #ECD407;
+    width: 100%;
+    z-index: -1;
+    position: absolute;
+    height: 100%;
+    top: 7px;
+    left: 7px;
+    transition: 0.2s;
+  }
+  
+  .yellow_button:hover:after {
+    top: 0px;
+    left: 0px;
+  }
+  
+  @media (min-width: 768px) {
+    .yellow_button {
+      padding: 13px 50px 13px;
+    }
+  }
 
-.green_button {
-    width: 100px;
-    height: 30px;
+
+  .green_button {
+    font-size: 16px;
+    font-weight: 200;
+    display: block;
+    letter-spacing: 1px;
+    padding: 13px 20px 13px;
+    outline: 0;
+    border: 1px solid black;
+    cursor: pointer;
     position: absolute;
     top: 40%;
     transform: translateY(-50%);
-    background-color: #18A558;
-    outline: none;
-    display: block;
-    padding: 30px 0;
-}
+    background-color: rgba(0, 0, 0, 0);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  
+  .green_button:after {
+    content: "";
+    background-color: #379711;
+    width: 100%;
+    z-index: -1;
+    position: absolute;
+    height: 100%;
+    top: 7px;
+    left: 7px;
+    transition: 0.2s;
+  }
+  
+  .green_button:hover:after {
+    top: 0px;
+    left: 0px;
+  }
+  
+  @media (min-width: 768px) {
+    .green_button {
+      padding: 13px 50px 13px;
+    }
+  }
 
-.blue_button {
-    width: 100px;
-    height: 30px;
+
+
+  .blue_button {
+    font-size: 16px;
+    font-weight: 200;
+    display: block;
+    letter-spacing: 1px;
+    padding: 13px 20px 13px;
+    outline: 0;
+    border: 1px solid black;
+    cursor: pointer;
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background-color: rgb(51,51,255);
-    outline: none;
-    display: block;
-    padding: 30px 0;
-}
-
-body {
-    font-family: "Montserrat";
-}
+    background-color: rgba(0, 0, 0, 0);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  
+  .blue_button:after {
+    content: "";
+    background-color: #0956BF;
+    width: 100%;
+    z-index: -1;
+    position: absolute;
+    height: 100%;
+    top: 7px;
+    left: 7px;
+    transition: 0.2s;
+  }
+  
+  .blue_button:hover:after {
+    top: 0px;
+    left: 0px;
+  }
+  
+  @media (min-width: 768px) {
+    .blue_button {
+      padding: 13px 50px 13px;
+    }
+  }
