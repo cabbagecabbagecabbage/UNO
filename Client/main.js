@@ -391,6 +391,10 @@ socket.on('showColour', function(curColour){
     ctx.fillRect(colourX, colourY, colourW, colourH);
 });
 
+socket.on('playerDisconnected', function(playerName){
+    alert(playerName + " has left the game.");
+})
+
 socket.on('endGame', function(winner){
     socket.disconnect();
     ctx.clearRect(canvas.width-100,0,canvas.width,15+10*20);
