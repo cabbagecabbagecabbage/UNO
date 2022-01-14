@@ -19,6 +19,7 @@ const buttonY = topMargin-(cardHeight-77)/2-77;
 const buttonW = 110;
 const buttonH = 77;
 
+
 //colour rectangle parameters
 const colourW = 77; //matching the height of the uno button
 const colourH = 77;
@@ -31,8 +32,12 @@ const colours = {
     3: 'blue'
 };
 
-// https://www.w3schools.com/jsref/prop_style_visibility.asp -> Style Visibility Property for buttons
 
+//text colour
+const TEXT_COLOUR = 'white';
+
+
+// https://www.w3schools.com/jsref/prop_style_visibility.asp -> Style Visibility Property for buttons
 
 // Red, Yellow, Green, Blue Buttons for when a player plays a wild card 
 // Initially make them invisible -> only visible when a player plays a wild card
@@ -335,7 +340,7 @@ socket.on('responseRoom', function(roomName){
         room = roomName;
         console.log(`${username} successfully joined ${room}`);
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = TEXT_COLOUR;
         ctx.fillText(username + "        " + roomName, 0, 15);
     }
     else {
@@ -355,6 +360,7 @@ socket.on('responseRoom', function(roomName){
 socket.on('countDown', function(secondsLeft){
     ctx.clearRect(0,25,canvas.width,canvas.height);
     if (secondsLeft != 0){
+        ctx.fillStyle = TEXT_COLOUR;
         ctx.fillText(`The game will start in ${secondsLeft} seconds.`, 0, 40);
     }
 });
@@ -438,7 +444,7 @@ socket.on('receiveIndex', function(playerIndex){
 //displays the names and number of cards of each play in the room
 socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
     ctx.clearRect(canvas.width-110,0,canvas.width,15+10*20);
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = TEXT_COLOUR;
     for (let i = 0; i < playersCardCounts.length; ++i){
         let posx = canvas.width - 110;
         let posy = 15 + i * 20;
@@ -458,8 +464,6 @@ socket.on('endGame', function(winner){
     socket.disconnect();
     ctx.clearRect(canvas.width-130,0,canvas.width,15+10*20);
     ctx.clearRect(0,20,canvas.width,canvas.height);
-    // ctx.fillStyle = 'black';
-    // ctx.fillText(`${winner} won the game!`,0,60);
     Swal.fire({
       title: 'Game Over!',
       text: `${winner} won the game!`,
