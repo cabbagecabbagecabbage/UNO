@@ -41,7 +41,6 @@ function initRoom(roomName){
     room['timer']['id'] = 0; //setInterval() returns an id, which can be used to clearInterval()
     room['timer']['secondsLeft'] = 10; //number of seconds
 
-    room['size'] = 0;
     room['deck'] = [];
     room['discardPile'] = [];
     // room['reverse'] will always equal 1 or -1 to indicate the direction the moves are going in
@@ -251,7 +250,7 @@ function onConnection(socket) {
         data[roomName]['players'][playerIndex]['safe'] = true;
 
         //makes unsafe players in the room pick up
-        for (let i = 0; i < data[roomName]['size']; ++i){
+        for (let i = 0; i < data[roomName]['roomPlayerCount']; ++i){
             if (data[roomName]['players'][i]['safe'] == false){
                 //if they catch another player, make them draw 2 and set them to safe again
                 console.log(`${data[roomName]['namesOfPlayers'][playerIndex]} (index ${playerIndex}) said "UNO" before ${data[roomName]['players'][i]['username']} (index ${i}), making them draw 2 cards.`)
@@ -259,6 +258,54 @@ function onConnection(socket) {
             }
         }
     });
+
+    socket.on('disconnect', function() {
+        //console.log("A user disconnected.");
+        console.log("The socket id is: " + socket.id);
+
+        // Looping through the rooms in data
+        for (let room in data) {
+
+            // Looping through the players in the room
+            for (let player = 0; player < data[room]['roomPlayerCount']; ++player) {
+
+                if (data[room]['players'][player]['id'] == socket.id) {
+                    console.log(data[room]['players'][player]['username'] + " has disconnected.");
+                    io.to(room).emit("playerDisconnected", data[room]['players'][player]['username']);
+
+                    // If it was the turn of the player who left, we move the turn to the next person
+                    if (data[room]['turn'] == player) {
+                        moveTurn(room, 1111); // Passing in a card that will not flag any special cases in moveTurn
+                    }
+
+                    // Deleting the player from the room
+                    data[room]['players'].splice(player, 1);
+
+                    // Changing the count of the number of players in the room
+                    data[room]['roomPlayerCount'] -= 1;
+
+                    // If there is only one player remaining, that player wins
+                    if (data[room]['roomPlayerCount'] == 1) {
+                        io.to(room).emit('endGame', data[room]['players'][0]['username']);
+                        initRoom(room);
+                        return;
+                    }
+
+                    // Fixing the indices of the players in main.js
+                    for (let i = 0; i < data[room]['roomPlayerCount']; ++i){
+                        io.to(data[room]['players'][i]['id']).emit('receiveIndex',i);
+                    }
+
+                    showTurn(room);
+
+                    showPlayersCardCounts(room);
+
+
+                    return;
+                }
+            }
+        }
+    })
 }
 
 
@@ -325,7 +372,7 @@ function moveTurn(roomName, cardPlayed) {
     // Moving turn to the next person
 
     if (cardPlayed == skipCard) {
-        data[roomName]['turn'] = (curPlayerIndex + 2 * data[roomName]['reverse']) % data[roomName]['size'];
+        data[roomName]['turn'] = (curPlayerIndex + 2 * data[roomName]['reverse']) % data[roomName]['roomPlayerCount'];
     }
 
     else if (cardPlayed == reverseCard) {
@@ -333,11 +380,11 @@ function moveTurn(roomName, cardPlayed) {
         // Changing the direction
         data[roomName]['reverse'] *= -1;
         // Moving the turn
-        data[roomName]['turn'] = (curPlayerIndex + 1 * data[roomName]['reverse']) % data[roomName]['size'];
+        data[roomName]['turn'] = (curPlayerIndex + 1 * data[roomName]['reverse']) % data[roomName]['roomPlayerCount'];
     }
 
     else {
-        data[roomName]['turn'] = (curPlayerIndex + 1 * data[roomName]['reverse']) % data[roomName]['size'];
+        data[roomName]['turn'] = (curPlayerIndex + 1 * data[roomName]['reverse']) % data[roomName]['roomPlayerCount'];
     }
 
     // Makes sure data[roomName]['turn'] is non-negative
@@ -357,7 +404,7 @@ function moveTurn(roomName, cardPlayed) {
 
 // Fixes the index of the current player if its negative so that we don't get an error when accessing the player array at that index
 function fixIndex(roomName) {
-    data[roomName]['turn'] = (data[roomName]['turn'] + 10 * data[roomName]['size']) % data[roomName]['size'];
+    data[roomName]['turn'] = (data[roomName]['turn'] + 10 * data[roomName]['roomPlayerCount']) % data[roomName]['roomPlayerCount'];
 }
 
 function refillDeck(roomName) {
@@ -415,7 +462,7 @@ function startGame(roomName) {
         console.log(roomName + ': No one here');
         return;
     }
-    data[roomName]['size'] = people;
+    data[roomName]['roomPlayerCount'] = people;
 
     // If there are more than 2 people in the room, we start the game
     if (people < 2) return;
@@ -500,7 +547,7 @@ function startGame(roomName) {
 
 //initializes the array containing names of the players in the room (to be displayed in client-side)
 function initNames(roomName){
-    for (let i = 0; i < data[roomName]['size']; ++i){
+    for (let i = 0; i < data[roomName]['roomPlayerCount']; ++i){
         data[roomName]['namesOfPlayers'].push(data[roomName]['players'][i]['username']);
     }
 }
@@ -515,7 +562,7 @@ function showTurn(roomName){
 //emits to everyone in the room the number of cards of each player and their name
 function showPlayersCardCounts(roomName){
     const playersCardCounts = [];
-    for (let i = 0; i < data[roomName]['size']; ++i){
+    for (let i = 0; i < data[roomName]['roomPlayerCount']; ++i){
         playersCardCounts.push(data[roomName]['players'][i]['hand'].length);
     }
     io.to(roomName).emit('showPlayersCardCounts',data[roomName]['namesOfPlayers'],playersCardCounts);

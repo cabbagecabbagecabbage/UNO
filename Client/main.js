@@ -415,14 +415,15 @@ socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
     }
 });
 
+
 socket.on('showColour', function(curColour){
     console.log(`showing the colour ${curColour}`);
     ctx.fillStyle = colours[curColour];
     ctx.fillRect(colourX, colourY, colourW, colourH);
 });
 
-socket.on('endGame', function(winner){
 
+socket.on('endGame', function(winner){
     socket.disconnect();
     ctx.clearRect(canvas.width-100,0,canvas.width,15+10*20);
     ctx.clearRect(0,20,canvas.width,canvas.height);
@@ -439,6 +440,11 @@ socket.on('endGame', function(winner){
         }
     });
 });
+
+
+socket.on('playerDisconnected', function(playerName){
+    alert(playerName + " has left the game.");
+})
 
 
 init();
