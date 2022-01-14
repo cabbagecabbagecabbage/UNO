@@ -90,8 +90,7 @@ let index;
 function init() {
 	//initializing the client side
 
-	//background, font, loading images
-	canvas.style.backgroundColor = "#03fce8";
+	//font, loading images
 	ctx.font = "16px Arial";
 	cardBackSide.src = "images/uno.png";
     unoButton.src = "images/unoButton.png";
