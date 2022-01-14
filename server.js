@@ -1,3 +1,4 @@
+const e = require('express');
 const express = require('express');
 const app = express();
 const http = require('http').Server(app);
@@ -519,11 +520,18 @@ function startGame(roomName) {
         randDeck.push(specialCard);
     }
 
-    // Since the first card can be a special card (other than the wildcards) we set current player's index to people-1 in the start so that if the first card
-    // is a special card, its 'played' on the first player
-    data[roomName]['turn'] = people - 1;
     let currentCard = randDeck[0];
     let currentCardNum = (currentCard - (currentCard % 10)) / 10;
+
+    // Since the first card can be a special card (other than the wildcards) we set current player's index to people-1 in the start so that if the first card
+    // is a special card, its 'played' on the first player
+
+
+    // If the starting card is a reverseCard, then if we moved the index once back in the start, moveTurn would've moved it back another instead of ahead.
+    // In this case we simply want to move backwards now starting with the person 'before' the first person. So just doing moveTurn will suffice.
+    if (currentCardNum != reverseCard) {
+        data[roomName]['turn'] = people - 1;
+    }
 
     // Updating the deck of the current room
     data[roomName]['deck'] = randDeck;
