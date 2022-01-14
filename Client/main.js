@@ -185,10 +185,12 @@ function checkCookie() {
         Swal.fire({
           title: `Welcome back, ${username}.`,
           icon: 'success',
-          showConfirmButton: false,
-          timer: 1500
+          confirmButtonText: 'Play',
+          allowOutsideClick: false,
         }).then((result) => {
-            joinGame();
+            if (result.isConfirmed){
+                joinGame();
+            }
         });
     }
 
