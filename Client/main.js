@@ -43,6 +43,7 @@ const TEXT_COLOUR = '#D7BA89';
 //top bar
 header = document.getElementById("header");
 countdown = document.getElementById("countdown");
+playerlist = document.getElementById("playerlist");
 
 
 // https://www.w3schools.com/jsref/prop_style_visibility.asp -> Style Visibility Property for buttons
@@ -466,9 +467,10 @@ socket.on('setTurn', function(bool) {
 
 //displays an indicator next to the name of whichever player's turn it is
 socket.on('showTurn', function(turnIndex){
-    ctx.clearRect(canvas.width-130,0,canvas.width,15+10*20);
-    ctx.fillStyle = 'black';
-    ctx.fillText('>',canvas.width-130,15+turnIndex*20);
+    let players = playerlist.children;
+    console.log(players.length, players[turnIndex]);
+    players[turnIndex].style.fontWeight = "900";
+    console.log(players.length, players[turnIndex]);
 });
 
 
@@ -480,12 +482,13 @@ socket.on('receiveIndex', function(playerIndex){
 
 //displays the names and number of cards of each play in the room
 socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
-    ctx.clearRect(canvas.width-110,0,canvas.width,15+10*20);
-    ctx.fillStyle = TEXT_COLOUR;
+    playerlist.innerHTML = '';
     for (let i = 0; i < playersCardCounts.length; ++i){
-        let posx = canvas.width - 110;
-        let posy = 15 + i * 20;
-        ctx.fillText(namesOfPlayers[i] + ": " + playersCardCounts[i],posx,posy);
+        let playerText = document.createElement("p");
+        playerText.appendChild(document.createTextNode(`${namesOfPlayers[i]}: ${"• ".repeat(playersCardCounts[i])}`));
+        playerText.style.whiteSpace = 'nowrap';
+        playerText.style.marginTop = 0;
+        playerlist.appendChild(playerText);
     }
 });
 
@@ -499,8 +502,7 @@ socket.on('showColour', function(curColour){
 
 socket.on('endGame', function(winner){
     socket.disconnect();
-    ctx.clearRect(canvas.width-130,0,canvas.width,15+10*20);
-    ctx.clearRect(0,20,canvas.width,canvas.height);
+    playerlist.innerHTML = '';
     Swal.fire({
       title: 'Game Over!',
       text: `${winner} won the game!`,

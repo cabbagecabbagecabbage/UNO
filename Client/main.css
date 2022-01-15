@@ -167,3 +167,29 @@
 body {
     font-family: "Montserrat";
 }
+
+/*
+credit to https://stackoverflow.com/questions/11433848/div-next-to-centered-div
+for showing how to put element to the right of a centered div
+*/
+
+#playerlistwrapper {
+    position: relative; 
+    width: 0; 
+    height: 0; 
+    vertical-align: top; 
+    display: inline-block;
+}
+
+#playerlist {
+    text-align: left;
+    display: inline-block;
+    position: absolute;
+    margin-left: 1em;
+}
+
+#canvas {
+    background-image: url('/images/background.jpg');
+    background-size: 1000px;
+    display: inline-block;
+}

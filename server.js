@@ -309,9 +309,9 @@ function onConnection(socket) {
                         io.to(data[room]['players'][i]['id']).emit('receiveIndex',i);
                     }
 
-                    showTurn(room);
-
                     showPlayersCardCounts(room);
+
+                    showTurn(room);
 
                     return;
                 }
@@ -411,8 +411,8 @@ function moveTurn(roomName, cardPlayed) {
     // Setting turn true for the next player
     io.to(data[roomName]['players'][nextPlayerIndex]['id']).emit('setTurn', true);
 
-    showTurn(roomName);
     showPlayersCardCounts(roomName);
+    showTurn(roomName);
 }
 
 
@@ -561,8 +561,8 @@ function startGame(roomName) {
     }
 
     initNames(roomName);
-    showTurn(roomName);
     showPlayersCardCounts(roomName);
+    showTurn(roomName);
 }
 
 
