@@ -34,7 +34,12 @@ const colours = {
 
 
 //text colour
-const TEXT_COLOUR = 'white';
+const TEXT_COLOUR = '#D7BA89';
+
+
+//top bar
+header = document.getElementById("header");
+countdown = document.getElementById("countdown");
 
 
 // https://www.w3schools.com/jsref/prop_style_visibility.asp -> Style Visibility Property for buttons
@@ -339,9 +344,15 @@ socket.on('responseRoom', function(roomName){
     if (roomName != 'error'){
         room = roomName;
         console.log(`${username} successfully joined ${room}`);
+        Swal.fire({
+            title: `You joined ${roomName}`,
+            text: 'The game will start soon!',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 3000,
+        });
         ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.fillStyle = TEXT_COLOUR;
-        ctx.fillText(username + "        " + roomName, 0, 15);
+        header.innerHTML = `${username} &emsp; &emsp; ${roomName}`;
     }
     else {
         socket.disconnect();
@@ -358,10 +369,12 @@ socket.on('responseRoom', function(roomName){
 
 //displays the countdown to the start of the game
 socket.on('countDown', function(secondsLeft){
-    ctx.clearRect(0,25,canvas.width,canvas.height);
     if (secondsLeft != 0){
-        ctx.fillStyle = TEXT_COLOUR;
-        ctx.fillText(`The game will start in ${secondsLeft} seconds.`, 0, 40);
+        countdown.style.display = "block";
+        countdown.innerHTML = `The game will start in ${secondsLeft} seconds.`;
+    }
+    else {
+        countdown.style.display = "none";
     }
 });
 
