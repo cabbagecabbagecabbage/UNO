@@ -522,7 +522,7 @@ socket.on('currentCard', function(currentCard){
 //displays an indicator next to the name of whichever player's turn it is
 socket.on('showTurn', function(turnIndex){
     let players = playerlist.children;
-    players[turnIndex].style.fontWeight = "1200"; //make the player's name and cards bold
+    players[turnIndex].style.fontWeight = "900"; //make the player's name and cards bold
 });
 
 
