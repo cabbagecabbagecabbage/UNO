@@ -490,6 +490,28 @@ socket.on('skipped', function(){
 });
 
 
+//sends an alert informing the players in the room that a player pressed uno so they are safe
+socket.on('isSafe',function(username){
+    Swal.fire({
+        title: 'uno!',
+        text: `${username} pressed uno: they have one card left.`
+        showConfirmButton: false,
+        timer:1000
+    });
+});
+
+
+//sends an alert informing the players in the room that a player pressed uno so they are safe
+socket.on('caughtUnsafe',function(username1, username2){
+    Swal.fire({
+        title: 'uno!',
+        text: `${username1} caught ${username2} with 1 card: ${username2} draws 2 cards!`,
+        showConfirmButton: false,
+        timer:1000
+    });
+});
+
+
 //receives and displays the current card, displays the deck and uno button
 socket.on('currentCard', function(currentCard){
     ctx.clearRect(LEFT_MARGIN+2.5*CARD_WIDTH,TOP_MARGIN-CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT); //clearing the space for current card
@@ -500,7 +522,7 @@ socket.on('currentCard', function(currentCard){
 //displays an indicator next to the name of whichever player's turn it is
 socket.on('showTurn', function(turnIndex){
     let players = playerlist.children;
-    players[turnIndex].style.fontWeight = "900"; //make the player's name and cards bold
+    players[turnIndex].style.fontWeight = "1200"; //make the player's name and cards bold
 });
 
 

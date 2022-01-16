@@ -252,7 +252,10 @@ function onConnection(socket) {
         console.log(`${playerIndex} pressed the uno button`);
 
         //makes player safe if they are unsafe
-        data[roomName]['players'][playerIndex]['safe'] = true;
+        if (data[roomName]['players'][playerIndex]['safe'] == false){
+            data[roomName]['players'][playerIndex]['safe'] = true;
+            io.to(roomName).emit('isSafe',data[roomName]['namesOfPlayers'][playerIndex]);
+        }
 
         //makes unsafe players in the room pick up
         for (let i = 0; i < data[roomName]['roomPlayerCount']; ++i){
@@ -260,6 +263,7 @@ function onConnection(socket) {
                 //if they catch another player, make them draw 2 and set them to safe again
                 console.log(`${data[roomName]['namesOfPlayers'][playerIndex]} (index ${playerIndex}) said "UNO" before ${data[roomName]['players'][i]['username']} (index ${i}), making them draw 2 cards.`)
                 drawCard(2,i,roomName);
+                io.to(roomName).emit('caughtUnsafe',[data[roomName]['namesOfPlayers'][playerIndex],data[roomName]['players'][i]['username']]);
             }
         }
     });
