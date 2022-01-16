@@ -1,4 +1,3 @@
-const e = require('express');
 const express = require('express');
 const app = express();
 const http = require('http').Server(app);
@@ -9,14 +8,14 @@ app.use(express.static(__dirname + '/Client'));
 io.on('connection', onConnection);
 http.listen(port, () => console.log('listening on http://localhost:' + port));
 
-const roomCount = 10; //number of public rooms available
-const roomLimit = 10; //maximum number of people in one room (according to UNO rules)
+const ROOM_COUNT = 10; //number of public rooms available
+const ROOM_LIMIT = 10; //maximum number of people in one room (according to UNO rules)
 
 // Defining the starting numbers of the special cards 
-const skipCard = 10;
-const reverseCard = 11;
-const draw2Card = 12;
-const wildCard = 13;
+const SKIP_CARD = 10;
+const REVERSE_CARD = 11;
+const DRAW_2_CARD = 12;
+const WILDCARD = 13;
 
 // Colours
 const RED = 0;
@@ -24,7 +23,7 @@ const YELLOW = 1;
 const GREEN = 2;
 const BLUE = 3;
 
-deck = [0,1,2,3];
+let deck = [0,1,2,3];
 
 // Adding all the other card names to the deck
 for (let i = 1; i <= 13; i++) {
@@ -53,7 +52,7 @@ function initRoom(roomName){
     room['namesOfPlayers'] = [];
 
     let players = [];
-    for (let j = 0; j < roomLimit; j++) {
+    for (let j = 0; j < ROOM_LIMIT; j++) {
         players[j] = [];
         players[j]['id'] = 0;
         players[j]['username'] = "";
@@ -64,7 +63,7 @@ function initRoom(roomName){
     data[roomName] = room;
 }
 
-for (let i = 1; i <= roomCount; i++) {
+for (let i = 1; i <= ROOM_COUNT; i++) {
     initRoom('Room '+i);
 }
 
@@ -87,17 +86,17 @@ function onConnection(socket) {
     socket.on('requestRoom', function(username){
         socket.username = username;
         //go through each room and try to join
-        for (let i = 1; i <= roomCount; i++){
+        for (let i = 1; i <= ROOM_COUNT; i++){
             let roomName = "Room " + i; //name of room
             let roomPlayerCount = getRoomSize(roomName);
             /*
             conditions for being able to join a room:
-                - the room has not reached the roomLimit
+                - the room has not reached the ROOM_LIMIT
                 - the room is not currently in a game (we check this with a countdown timer)
             */
-            if (roomPlayerCount < roomLimit && data[roomName]['timer']['secondsLeft'] > 0){
+            if (roomPlayerCount < ROOM_LIMIT && data[roomName]['timer']['secondsLeft'] > 0){
                 socket.join(roomName); //join the room
-                console.log(`${socket.username} joined ${roomName} (${roomPlayerCount+1}/${roomLimit})`);
+                console.log(`${socket.username} joined ${roomName} (${roomPlayerCount+1}/${ROOM_LIMIT})`);
                 io.to(socket.id).emit('responseRoom', roomName); //tell the client they were able to join
                 if (roomPlayerCount != 0){
                     //now that there are enough people to start the game, [re]start the countdown
@@ -174,16 +173,16 @@ function onConnection(socket) {
             // We only want to pass in the first two digits denoting the type of card and not the colour of the card
             moveTurn(roomName, cardNum);
 
-            // The special effects of a skipCard or reverseCard are covered in moveTurn
+            // The special effects of a SKIP_CARD or REVERSE_CARD are covered in moveTurn
 
-            // Drawing 2 cards for the next player if a draw2Card is played
-            if (cardNum == draw2Card) {
+            // Drawing 2 cards for the next player if a DRAW_2_CARD is played
+            if (cardNum == DRAW_2_CARD) {
                 // Drawing to cards for the next person
                 drawCard(2, data[roomName]['turn'], roomName);
             }
 
-            // If a wildDraw4Card was played (it can be distinguished from a normal wildCard based on its last digit)
-            else if (cardNum == wildCard && (card % 10) >= 4) {
+            // If a wildDraw4Card was played (it can be distinguished from a normal WILDCARD based on its last digit)
+            else if (cardNum == WILDCARD && (card % 10) >= 4) {
                 drawCard(4, data[roomName]['turn'], roomName);
             }
 
@@ -224,7 +223,7 @@ function onConnection(socket) {
         console.log("It is now Player " + data[roomName]['turn'] + "'s turn");
     });
 
-    //changing the current colour (wildcards)
+    //changing the current colour (WILDCARDs)
     socket.on('changeColour', function(info) {
         let roomName = info[0]
         let colour = info[1];
@@ -373,7 +372,6 @@ function drawCard(numCards, playerIndex, roomName) {
 
 // Moves the turn to the next player and changes the boolean 'turn' for each player respectively
 function moveTurn(roomName, cardPlayed) {
-
     // Making sure that the index received is non-negative and mod the number of people in the room (may be unnecessary now but delete later)
     fixIndex(roomName);
     let curPlayerIndex = data[roomName]['turn'];
@@ -382,11 +380,11 @@ function moveTurn(roomName, cardPlayed) {
     io.to(data[roomName]['players'][curPlayerIndex]['id']).emit('setTurn', false);
 
     // Moving turn to the next person
-    if (cardPlayed == skipCard) {
+    if (cardPlayed == SKIP_CARD) {
         io.to(data[roomName]['players'][(curPlayerIndex+data[roomName]['reverse']) % data[roomName]['roomPlayerCount']]['id']).emit('skipped');
         data[roomName]['turn'] = (curPlayerIndex + 2 * data[roomName]['reverse']) % data[roomName]['roomPlayerCount'];
     }
-    else if (cardPlayed == reverseCard) {
+    else if (cardPlayed == REVERSE_CARD) {
         // Changing the direction
         data[roomName]['reverse'] *= -1;
         io.to(roomName).emit('reversed');
@@ -511,13 +509,13 @@ function startGame(roomName) {
     let currentCard = randDeck[0];
     let currentCardNum = (currentCard - (currentCard % 10)) / 10;
 
-    // Since the first card can be a special card (other than the wildcards) we set current player's index to people-1 in the start so that if the first card
+    // Since the first card can be a special card (other than the WILDCARDs) we set current player's index to people-1 in the start so that if the first card
     // is a special card, its 'played' on the first player
 
 
-    // If the starting card is a reverseCard, then if we moved the index once back in the start, moveTurn would've moved it back another instead of ahead.
+    // If the starting card is a REVERSE_CARD, then if we moved the index once back in the start, moveTurn would've moved it back another instead of ahead.
     // In this case we simply want to move backwards now starting with the person 'before' the first person. So just doing moveTurn will suffice.
-    if (currentCardNum != reverseCard) {
+    if (currentCardNum != REVERSE_CARD) {
         data[roomName]['turn'] = people - 1;
     }
 
@@ -531,10 +529,10 @@ function startGame(roomName) {
     data[roomName]['colour'] = ((randDeck[0] % 10) % 4);
     io.to(roomName).emit('showColour',data[roomName]['colour']);
 
-    // Moving the turn to the first player (or the second if the first card is a skipCard)
+    // Moving the turn to the first player (or the second if the first card is a SKIP_CARD)
     moveTurn(roomName, currentCardNum);
 
-    // The only card that is greater than 120 and can be the start card is the draw2Card. If so, the first player draws two cards.
+    // The only card that is greater than 120 and can be the start card is the DRAW_2_CARD. If so, the first player draws two cards.
     if (currentCard >= 120) {
         drawCard(2, data[roomName]['turn'], roomName);
     }
