@@ -69,20 +69,27 @@ for (let i = 1; i <= roomCount; i++) {
 }
 
 
+//gets the number of players in a room
+function getRoomSize(roomName){
+    let size; //current number of players in this room
+    try {
+        roomPlayerCount = io.sockets.adapter.rooms.get(roomName).size; //if the room exists, get the number of players
+    } catch (e) {
+        roomPlayerCount = 0; //otherwise, the room is empty
+    }
+    return size;
+}
+
+
+//this function is called whenever the user is connected
 function onConnection(socket) {
     console.log('a user connected')
-
     socket.on('requestRoom', function(username){
         socket.username = username;
         //go through each room and try to join
         for (let i = 1; i <= roomCount; i++){
             let roomName = "Room " + i; //name of room
-            let roomPlayerCount; //current number of players in this room
-            try {
-                roomPlayerCount = io.sockets.adapter.rooms.get(roomName).size; //if the room exists, get the number of players
-            } catch (e) {
-                roomPlayerCount = 0; //otherwise, the room is empty
-            }
+            let roomPlayerCount = getRoomSize(roomName);
             /*
             conditions for being able to join a room:
                 - the room has not reached the roomLimit
@@ -108,21 +115,18 @@ function onConnection(socket) {
     });
 
 
-    // Playing a card if it is legal to do so
-
+    // Play a card if it is legal to do so
     socket.on('playingCard', function(info) {
 
         let roomName = info[0];
         let card = info[1];
 
         let curPlayerIndex = data[roomName]['turn'];
-
         console.log("Player " + curPlayerIndex + " in " + roomName + " is trying to play " + info[1]);
 
         // Current card that is face-up
         let curCard = data[roomName]['cardOnBoard'];
         let curCardNum = (curCard - (curCard % 10)) / 10;
-        // let curCardClr = ((curCard % 10) % 4);
 
         // Calculating the type of card that the user is trying to play and its colour using the digits in its name
         let cardNum = (card - (card % 10)) / 10; // First two digits represent the type of card
@@ -130,8 +134,6 @@ function onConnection(socket) {
 
         // We play the card if the move is valid
         if (isValidMove(card, roomName)) {
-
-            
             data[roomName]['discardPile'].push(curCard) // Sending the current card on the board to the discard pile
 
             console.log("Sent " + curCard + " to the discardPile.");
@@ -188,21 +190,19 @@ function onConnection(socket) {
             console.log("It is now Player " + data[roomName]['turn'] + "'s turn");
         }
         else {
-            //otherwise, inform the client
+            //otherwise, inform the client that the card was invalid
             io.to(data[roomName]['players'][data[roomName]['turn']]['id']).emit('playCardFailed');
         }
     });
 
-    // Went the current player has to draw a card
+    // When the current player has to draw a card
     socket.on('drawCard', function(info) {
-
         let numCards = info[0];
         let roomName = info[1];
         console.log(numCards,roomName);
         let playerIndex = data[roomName]['turn'];
 
         // A player can only draw a card if they dont have a playable card
-        
         if (numCards == 1) {
             for (const card of data[roomName]['players'][playerIndex]['hand']) {
 
@@ -224,6 +224,7 @@ function onConnection(socket) {
         console.log("It is now Player " + data[roomName]['turn'] + "'s turn");
     });
 
+    //changing the current colour (wildcards)
     socket.on('changeColour', function(info) {
         let roomName = info[0]
         let colour = info[1];
@@ -234,20 +235,18 @@ function onConnection(socket) {
         if (colour == RED) {
             console.log("Changed colour to red.");
         }
-
         else if (colour == YELLOW) {
             console.log("Changed colour to yellow.");
         }
-
         else if (colour == GREEN) {
             console.log("Changed colour to green.");
         }
-
         else {
             console.log("Changed colour to blue.");
         }
     });
 
+    //when the uno button is pressed by a player
     socket.on('unoPress', function(info){
         let roomName = info[0];
         let playerIndex = info[1];
@@ -266,6 +265,7 @@ function onConnection(socket) {
         }
     });
 
+    //handles user disconnection (removes them from the game)
     socket.on('disconnect', function() {
         //console.log("A user disconnected.");
         console.log("The socket id is: " + socket.id);
@@ -321,8 +321,8 @@ function onConnection(socket) {
 }
 
 
+//checks if a card is playable after the current card in the room
 function isValidMove(card, roomName) {
-
     // Current card that is face-up
     let curCard = data[roomName]['cardOnBoard'];
     let curCardNum = (curCard - (curCard % 10)) / 10;
@@ -339,8 +339,8 @@ function isValidMove(card, roomName) {
 }
 
 
+//adds card(s) into the player's hand from the deck
 function drawCard(numCards, playerIndex, roomName) {
-
     // Creating shallow copies of the game deck and the current players deck so that we can call them easily and adjust them
     let gameDeck = data[roomName]['deck'];
     let playerDeck = data[roomName]['players'][playerIndex]['hand'];
@@ -352,8 +352,6 @@ function drawCard(numCards, playerIndex, roomName) {
         if (data[roomName]['deck'].length == 0) {
             refillDeck(roomName);
         }
-
-
         playerDeck.push(gameDeck[0]);
 
         console.log("Player " + playerIndex + " drew " + gameDeck[0]);
@@ -369,6 +367,7 @@ function drawCard(numCards, playerIndex, roomName) {
     // Re-draw the deck of the player who drew the card(s)
     io.to(data[roomName]['players'][playerIndex]['id']).emit('hand',data[roomName]['players'][playerIndex]['hand']);
 
+    // Update the client-side display
     showPlayersCardCounts(roomName);
 }
 
@@ -384,22 +383,19 @@ function moveTurn(roomName, cardPlayed) {
     io.to(data[roomName]['players'][curPlayerIndex]['id']).emit('setTurn', false);
 
     // Moving turn to the next person
-
     if (cardPlayed == skipCard) {
         io.to(data[roomName]['players'][(curPlayerIndex+data[roomName]['reverse']) % data[roomName]['roomPlayerCount']]['id']).emit('skipped');
         data[roomName]['turn'] = (curPlayerIndex + 2 * data[roomName]['reverse']) % data[roomName]['roomPlayerCount'];
     }
-
     else if (cardPlayed == reverseCard) {
-        
         // Changing the direction
         data[roomName]['reverse'] *= -1;
         io.to(roomName).emit('reversed');
         // Moving the turn
         data[roomName]['turn'] = (curPlayerIndex + 1 * data[roomName]['reverse']) % data[roomName]['roomPlayerCount'];
     }
-
     else {
+        // Move the turn normally
         data[roomName]['turn'] = (curPlayerIndex + 1 * data[roomName]['reverse']) % data[roomName]['roomPlayerCount'];
     }
 
@@ -413,6 +409,7 @@ function moveTurn(roomName, cardPlayed) {
     // Setting turn true for the next player
     io.to(data[roomName]['players'][nextPlayerIndex]['id']).emit('setTurn', true);
 
+    // Update the client-side display
     showPlayersCardCounts(roomName);
     showTurn(roomName);
 }
@@ -423,6 +420,8 @@ function fixIndex(roomName) {
     data[roomName]['turn'] = (data[roomName]['turn'] + 10 * data[roomName]['roomPlayerCount']) % data[roomName]['roomPlayerCount'];
 }
 
+
+// Refills the deck form the discard pile
 function refillDeck(roomName) {
     // Copying the cards in the discardPile to the deck
     for (let i = 0; i < data[roomName]['discardPile'].length; ++i) {
@@ -435,22 +434,20 @@ function refillDeck(roomName) {
 }
 
 
+// Shuffling the deck array using the Fisher-Yates shuffle algorithm
 function randomizeDeck(roomName) {
-    // Shuffling the array using the Fisher-Yates shuffle algorithm
     // https://javascript.info/task/shuffle
-
     randDeck = data[roomName]['deck'];
-    
     for (let i = randDeck.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1)); // random index from 0 to i
-    
         // swap elements array[i] and array[j]
         [randDeck[i], randDeck[j]] = [randDeck[j], randDeck[i]];
     }
-
     data[roomName]['deck'] = randDeck;
 }
 
+
+//handles each second of countdown; when it reaches 0, starts the game
 function countdown(roomName){
     let secondsLeft = data[roomName]['timer']['secondsLeft']--; //decrease secondsLeft
     io.to(roomName).emit('countDown', secondsLeft); //inform the rooms how long until the game starts
@@ -465,7 +462,6 @@ function countdown(roomName){
 
 // Begins a game if the conditions to begin a game are met
 function startGame(roomName) {
-
     console.log(roomName + ': Requesting game');
     // variable to hold the number of people in the room
     let people;
@@ -576,7 +572,7 @@ function initNames(roomName){
 }
 
 
-//emits to all everyone in the room the index of the 
+//emits to all everyone in the room the index of the current player
 function showTurn(roomName){
     io.to(roomName).emit('showTurn', data[roomName]['turn']);
 }
