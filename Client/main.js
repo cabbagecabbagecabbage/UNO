@@ -496,18 +496,20 @@ socket.on('isSafe',function(username){
         title: 'uno!',
         text: `${username} pressed uno: they have one card left.`,
         showConfirmButton: false,
-        timer:1000
+        timer:2000
     });
 });
 
 
 //sends an alert informing the players in the room that a player pressed uno so they are safe
-socket.on('caughtUnsafe',function(username1, username2){
+socket.on('caughtUnsafe',function(info){
+    let username1 = info[0];
+    let username2 = info[1];
     Swal.fire({
         title: 'uno!',
         text: `${username1} caught ${username2} with 1 card: ${username2} draws 2 cards!`,
         showConfirmButton: false,
-        timer:1000
+        timer:2000
     });
 });
 
