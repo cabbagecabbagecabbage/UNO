@@ -11,15 +11,16 @@ var drawCardSound = new sound("sound-effects/Card-flip-sound-effect.mp3")
 //cards
 const CARD_WIDTH = 120, CARD_HEIGHT = 180; //must be in the ratio 2:3 to avoid distortion
 const TOP_MARGIN = 200, LEFT_MARGIN = 80;
+
 const cardBackSide = new Image(); //image of the backside of an uno card
 const unoButton = new Image(); //image of the uno button
 const deck = []; //array of images of the cards in the deck
 
 //button position and dimensions
-const BUTTON_X = LEFT_MARGIN+5*CARD_WIDTH;
-const BUTTON_Y = TOP_MARGIN-(CARD_HEIGHT-77)/2-77;
 const BUTTON_W = 110;
 const BUTTON_H = 77;
+const BUTTON_X = LEFT_MARGIN+5*CARD_WIDTH;
+const BUTTON_Y = TOP_MARGIN-(CARD_HEIGHT-BUTTON_H)/2-BUTTON_H;
 
 //deck card image position
 const DECK_X = LEFT_MARGIN+3.75*CARD_WIDTH;
@@ -92,16 +93,15 @@ blueButton.addEventListener("click", function() {
 
 let wildCard = 0; // Making a variable to store the number of a wild card if played
 let wildCardPlayed = false // Boolean storing if a wild card is played and the change colour buttons are visible
-let room;
-let hand = [];
-let turn = false;
-let username;
-let index;
+let room; //stores the name of the room the player is in
+let hand = []; //stores the hand of the player
+let turn = false; // stores whether it is the player's turn
+let username; //stores the username of the player
+let index; //stores the index of the player in the array of players in the room
 
 
+//initializing the client side
 function init() {
-	//initializing the client side
-
 	//font, loading images
 	ctx.font = "16px Arial";
 	cardBackSide.src = "images/uno.png";
@@ -116,6 +116,7 @@ function init() {
 	//add listeners for mouse-click events (refer to https://www.w3schools.com/jsref/dom_obj_event.asp)
 	document.addEventListener('click', onMouseClick);
 
+    //check if they already have a username stored in cookie
 	checkCookie()
 }
 
@@ -136,9 +137,7 @@ value: the actual value of the cookie based on the user that has joined
        the server
 days: the number of days until the expiration of the cookie
 */
-
 // https://www.w3schools.com/js/js_cookies.asp
-
 function setCookie(name, value, days) {
     let date = new Date();
 
@@ -150,8 +149,8 @@ function setCookie(name, value, days) {
     document.cookie = name + "=" + value + ";" + expires + ";path=/";
 }
 
-// taking the cookie's name as the parameter
 
+// takes the cookie and returns the username of the player 
 function getCookie(cookieName) {
     let name = cookieName + "=";
 
@@ -187,6 +186,7 @@ function genRand(min, max) {
 }
 
 
+//checks if they already have a username stored in the cookie
 function checkCookie() {
     username = getCookie("username");
 
@@ -232,7 +232,8 @@ function checkCookie() {
     }
 }
 
-//mouse click listener function
+ 
+//processes mouse clicks (playing and drawing cards, pressing uno button)
 function onMouseClick(e) {
     rect = canvas.getBoundingClientRect();
     let pageX = e.pageX - rect.left, pageY = e.pageY - rect.top;
@@ -296,6 +297,7 @@ function onMouseClick(e) {
 }
 
 
+// alert the user when the try to play an invalid card
 socket.on('playCardFailed', function(){
     Swal.fire({
       title: 'Oops!',
@@ -307,8 +309,9 @@ socket.on('playCardFailed', function(){
 });
 
 
+
+// alert the user that they cannot draw when they have a playable card in hand
 socket.on('playableCard', function(){
-    // alert("You can not draw when you have a playable card.");
     Swal.fire({
       title: 'Oops!',
       text: 'You cannot draw when when you have a playable card.',
@@ -320,7 +323,6 @@ socket.on('playableCard', function(){
 
 
 function setColour(colour) {
-
     // Playing the wildCard now so that the next player can only make a turn after the current player has chosen a colour
     //inform the server that we are playing this card
     console.log(`${wildCard} played`);
@@ -341,11 +343,13 @@ function setColour(colour) {
     wildCardPlayed = false;
 }
 
+
 //process the response of the room request: either you can join a room, or everything is full
 socket.on('responseRoom', function(roomName){
     if (roomName != 'error'){
         room = roomName;
         console.log(`${username} successfully joined ${room}`);
+        //alert the user
         Swal.fire({
             title: `You joined ${roomName}`,
             text: 'The game will start soon!',
@@ -353,12 +357,14 @@ socket.on('responseRoom', function(roomName){
             showConfirmButton: false,
             timer: 3000,
         });
+        //clear the canvas
         ctx.clearRect(0,0,canvas.width,canvas.height);
+        //display the player's name and room name
         header.innerHTML = `${username} &emsp; &emsp; ${roomName}`;
     }
     else {
         socket.disconnect();
-        // alert("All rooms are full! Try again later");
+        //alert the user that all rooms are full
         Swal.fire({
           title: 'Oops!',
           text: 'All rooms are full! Try again later',
@@ -373,10 +379,10 @@ socket.on('responseRoom', function(roomName){
 socket.on('countDown', function(secondsLeft){
     if (secondsLeft != 0){
         countdown.style.display = "block";
-        countdown.innerHTML = `The game will start in ${secondsLeft} seconds.`;
+        countdown.innerHTML = `The game will start in ${secondsLeft} seconds`;
     }
     else {
-        countdown.style.display = "none";
+        countdown.style.display = "none"; //stop displaying the countdown
         //the game now starts; draw the static images
         ctx.drawImage(cardBackSide,DECK_X, DECK_Y, CARD_WIDTH, CARD_HEIGHT);//drawing the back of card (representing the deck)
         ctx.drawImage(unoButton,BUTTON_X,BUTTON_Y,BUTTON_W,BUTTON_H); //drawing the uno button
@@ -397,12 +403,15 @@ function resize(height){
 socket.on('hand', function(playerHand){
     console.log("Displaying the cards...");
     hand = playerHand; //update the hand of the client
-    let rows = Math.floor((hand.length-1) / 7);
-    let requiredHeight = (rows+2.5)*CARD_HEIGHT + TOP_MARGIN;
-    console.log('requiredHeight',requiredHeight);
+    let rows = Math.floor((hand.length-1) / 7); //calculate the number of rows needed
+    let requiredHeight = (rows+2.5)*CARD_HEIGHT + TOP_MARGIN; //calculate the required height
+
+    //check if the canvas is tall enough
     if (requiredHeight > canvas.height){
+        //resize the canvas
         resize(requiredHeight);
     }
+
     ctx.clearRect(0,TOP_MARGIN,canvas.width,canvas.height); //clear the canvas space where the previous hand was drawn
     let row = 0.5, column = 0;
     for (let i = 0; i < hand.length; ++i){
@@ -422,6 +431,7 @@ socket.on('hand', function(playerHand){
 });
 
 
+//plays audio when a card is drawn
 socket.on('drawCardSound', function() {
     drawCardSound.play();
 })
@@ -490,7 +500,7 @@ socket.on('currentCard', function(currentCard){
 //displays an indicator next to the name of whichever player's turn it is
 socket.on('showTurn', function(turnIndex){
     let players = playerlist.children;
-    players[turnIndex].style.fontWeight = "900";
+    players[turnIndex].style.fontWeight = "900"; //make the player's name and cards bold
 });
 
 
