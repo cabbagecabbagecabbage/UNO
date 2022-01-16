@@ -369,7 +369,7 @@ function drawCard(numCards, playerIndex, roomName) {
 
     // Update the client-side display
     showPlayersCardCounts(roomName);
-    showturn(roomName);
+    showTurn(roomName);
 }
 
 
