@@ -9,41 +9,39 @@ var drawCardSound = new sound("sound-effects/Card-flip-sound-effect.mp3")
 
 
 //cards
-const cardWidth = 120, cardHeight = 180; //must be in the ratio 2:3 to avoid distortion
-const topMargin = 200, leftMargin = 80;
+const CARD_WIDTH = 120, CARD_HEIGHT = 180; //must be in the ratio 2:3 to avoid distortion
+const TOP_MARGIN = 200, LEFT_MARGIN = 80;
 const cardBackSide = new Image(); //image of the backside of an uno card
 const unoButton = new Image(); //image of the uno button
 const deck = []; //array of images of the cards in the deck
 
+//button position and dimensions
+const BUTTON_X = LEFT_MARGIN+5*CARD_WIDTH;
+const BUTTON_Y = TOP_MARGIN-(CARD_HEIGHT-77)/2-77;
+const BUTTON_W = 110;
+const BUTTON_H = 77;
 
-//button parameters
-const buttonX = leftMargin+5*cardWidth;
-const buttonY = topMargin-(cardHeight-77)/2-77;
-const buttonW = 110;
-const buttonH = 77;
+//deck card image position
+const DECK_X = LEFT_MARGIN+3.75*CARD_WIDTH;
+const DECK_Y = TOP_MARGIN-CARD_HEIGHT;
 
-
-//colour rectangle parameters
-const colourW = 77; //matching the height of the uno button
-const colourH = 77;
-const colourX = leftMargin + 2*cardWidth + (cardWidth - colourW) / 2;
-const colourY = topMargin-(cardHeight-colourH)/2-colourH;
+//colour rectangle position and dimensions
+const COLOUR_W = 77; //matching the height of the uno button image
+const COLOUR_H = 77;
+const COLOUR_X = LEFT_MARGIN + 1.35*CARD_WIDTH + (CARD_WIDTH - COLOUR_W) / 2;
+const COLOUR_Y = TOP_MARGIN-(CARD_HEIGHT-COLOUR_H)/2-COLOUR_H;
 const colours = {
     0: 'red',
     1: 'yellow',
     2: 'green',
     3: 'blue'
-};
-
-
-//text colour
-const TEXT_COLOUR = '#D7BA89';
+}; //maps constant to colour name, which is then usable by ctx.fillStyle
 
 
 //top bar
-header = document.getElementById("header");
-countdown = document.getElementById("countdown");
-playerlist = document.getElementById("playerlist");
+let header = document.getElementById("header");
+let countdown = document.getElementById("countdown");
+let playerlist = document.getElementById("playerlist");
 
 
 // https://www.w3schools.com/jsref/prop_style_visibility.asp -> Style Visibility Property for buttons
@@ -249,10 +247,10 @@ function onMouseClick(e) {
                 column = 0;
                 ++row;
             }
-            let cardX = leftMargin+column*cardWidth;
-            let cardY = topMargin+row*cardHeight;
+            let cardX = LEFT_MARGIN+column*CARD_WIDTH;
+            let cardY = TOP_MARGIN+row*CARD_HEIGHT;
             //check if the click is within the area of the card
-            if (cardX < pageX && pageX < cardX + cardWidth && cardY < pageY && pageY < cardY + cardHeight){
+            if (cardX < pageX && pageX < cardX + CARD_WIDTH && cardY < pageY && pageY < cardY + CARD_HEIGHT){
                 // if a wild card was played, we un-disable the change colour buttons
                 if (hand[i] >= 130) {
 
@@ -281,17 +279,17 @@ function onMouseClick(e) {
         }
 
         //check for drawing a card
-        if (leftMargin+4*cardWidth < pageX &&
-            pageX < leftMargin+5*cardWidth &&
-            topMargin-cardHeight < pageY &&
-            pageY < topMargin){
+        if (LEFT_MARGIN+4*CARD_WIDTH < pageX &&
+            pageX < LEFT_MARGIN+5*CARD_WIDTH &&
+            TOP_MARGIN-CARD_HEIGHT < pageY &&
+            pageY < TOP_MARGIN){
             console.log(`drawing a card`);
             socket.emit('drawCard', [1,room]);
             return;
         }
     }
     //if the uno button is clicked
-    if (buttonX <= pageX && pageX <= buttonX + buttonW && buttonY <= pageY && pageY <= buttonY + buttonH){
+    if (BUTTON_X <= pageX && pageX <= BUTTON_X + BUTTON_W && BUTTON_Y <= pageY && pageY <= BUTTON_Y + BUTTON_H){
         console.log('uno button pressed');
         socket.emit('unoPress', [room, index]);
     }
@@ -379,6 +377,9 @@ socket.on('countDown', function(secondsLeft){
     }
     else {
         countdown.style.display = "none";
+        //the game now starts; draw the static images
+        ctx.drawImage(cardBackSide,DECK_X, DECK_Y, CARD_WIDTH, CARD_HEIGHT);//drawing the back of card (representing the deck)
+        ctx.drawImage(unoButton,BUTTON_X,BUTTON_Y,BUTTON_W,BUTTON_H); //drawing the uno button
     }
 });
 
@@ -397,12 +398,12 @@ socket.on('hand', function(playerHand){
     console.log("Displaying the cards...");
     hand = playerHand; //update the hand of the client
     let rows = Math.floor((hand.length-1) / 7);
-    let requiredHeight = (rows+2.5)*cardHeight + topMargin;
+    let requiredHeight = (rows+2.5)*CARD_HEIGHT + TOP_MARGIN;
     console.log('requiredHeight',requiredHeight);
     if (requiredHeight > canvas.height){
         resize(requiredHeight);
     }
-    ctx.clearRect(0,topMargin,canvas.width,canvas.height); //clear the canvas space where the previous hand was drawn
+    ctx.clearRect(0,TOP_MARGIN,canvas.width,canvas.height); //clear the canvas space where the previous hand was drawn
     let row = 0.5, column = 0;
     for (let i = 0; i < hand.length; ++i){
         if (column == 7){
@@ -410,10 +411,12 @@ socket.on('hand', function(playerHand){
             column = 0;
             ++row;
         }
-        //refer to https://www.w3schools.com/tags/canvas_drawimage.asp
+        //draw the card at the position, offset by the left margin and top margin
         ctx.drawImage(deck[`deck${hand[i]}.png`],
-                      leftMargin+column*cardWidth,
-                      topMargin+row*cardHeight,cardWidth,cardHeight);
+                      LEFT_MARGIN+column*CARD_WIDTH,
+                      TOP_MARGIN+row*CARD_HEIGHT,
+                      CARD_WIDTH,
+                      CARD_HEIGHT);
         ++column;
     }
 });
@@ -438,17 +441,7 @@ function sound(src) {
     this.stop = function(){
       this.sound.pause();
     }
-  }
-
-//receives and displays the current card, displays the deck and uno button
-socket.on('currentCard', function(currentCard){
-    ctx.clearRect(leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight); //clearing the space for current card
-    ctx.drawImage(deck[`deck${currentCard}.png`],leftMargin+3*cardWidth,topMargin-cardHeight,cardWidth,cardHeight); //drawing the current card
-
-    ctx.drawImage(cardBackSide,leftMargin+4*cardWidth,topMargin-cardHeight,cardWidth,cardHeight);//drawing the back of card (representing the deck)
-
-    ctx.drawImage(unoButton,buttonX,buttonY,buttonW,buttonH); //drawing the uno button
-});
+}
 
 
 //sets the turn variable to true or false (true if it is the player's turn, false otherwise)
@@ -465,6 +458,7 @@ socket.on('setTurn', function(bool) {
 });
 
 
+//sends an alert informing the user that the direction of turns has been reversed by a reverse turn card
 socket.on('reversed', function(){
     console.log('reversed');
     Swal.fire({
@@ -475,6 +469,7 @@ socket.on('reversed', function(){
 });
 
 
+//sends an alert informing the user that their turn was skipped by a skip turn card
 socket.on('skipped', function(){
     console.log('skipped');
     Swal.fire({
@@ -482,6 +477,13 @@ socket.on('skipped', function(){
         showConfirmButton: false,
         timer: 1000
     });
+});
+
+
+//receives and displays the current card, displays the deck and uno button
+socket.on('currentCard', function(currentCard){
+    ctx.clearRect(LEFT_MARGIN+2.5*CARD_WIDTH,TOP_MARGIN-CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT); //clearing the space for current card
+    ctx.drawImage(deck[`deck${currentCard}.png`],LEFT_MARGIN+2.5*CARD_WIDTH,TOP_MARGIN-CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT); //drawing the current card
 });
 
 
@@ -513,7 +515,7 @@ socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
 
 socket.on('showColour', function(curColour){
     ctx.fillStyle = colours[curColour];
-    ctx.fillRect(colourX, colourY, colourW, colourH);
+    ctx.fillRect(COLOUR_X, COLOUR_Y, COLOUR_W, COLOUR_H);
 });
 
 
