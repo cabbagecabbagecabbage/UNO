@@ -494,7 +494,7 @@ socket.on('skipped', function(){
 socket.on('isSafe',function(username){
     Swal.fire({
         title: 'uno!',
-        text: `${username} pressed uno: they have one card left.`
+        text: `${username} pressed uno: they have one card left.`,
         showConfirmButton: false,
         timer:1000
     });
