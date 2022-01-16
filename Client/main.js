@@ -5,8 +5,14 @@ var rect;
 const ctx = canvas.getContext('2d'); //drawing context
 
 // Sound effects
-var drawCardSound = new sound("sound-effects/Card-flip-sound-effect.mp3")
-
+var drawCardSound = new sound("sound-effects/Card-flip-sound-effect.mp3");
+// https://soundbible.com/1003-Ta-Da.html
+var winnerSound = new sound("sound-effects/winning-sound-effect.wav");
+// https://www.myinstants.com/instant/the-price-is-right-losing-horn/
+var loserSound = new sound("sound-effects/losing-sound-effect.mp3");
+// Sounds recorded at home
+var playingCard = new sound("sound-effects/playing-card.m4a");
+var sayingUNO = new sound("sound-effects/Someone-saying-uno.m4a");
 
 //cards
 const CARD_WIDTH = 120, CARD_HEIGHT = 180; //must be in the ratio 2:3 to avoid distortion
@@ -434,7 +440,15 @@ socket.on('hand', function(playerHand){
 //plays audio when a card is drawn
 socket.on('drawCardSound', function() {
     drawCardSound.play();
-})
+});
+
+socket.on('playCardSound', function() {
+    playingCard.play()
+});
+
+socket.on('sayUNO', function() {
+    sayingUNO.play();
+});
 
 
 // https://www.w3schools.com/graphics/game_sound.asp --> code for adding sound effects
@@ -553,7 +567,20 @@ socket.on('showColour', function(curColour){
 });
 
 
-socket.on('endGame', function(winner){
+socket.on('endGame', function(info){
+    winnerIndex = info[0];
+    winner = info[1];
+
+    // If this player won, play the winning sound effect
+    if (winnerIndex == index) {
+        winnerSound.play();
+    }
+
+    // Otherwise play the losing sound effect
+    else {
+        loserSound.play();
+    }
+
     socket.disconnect();
     playerlist.innerHTML = '';
     Swal.fire({

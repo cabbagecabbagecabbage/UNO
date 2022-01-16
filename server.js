@@ -133,6 +133,9 @@ function onConnection(socket) {
 
         // We play the card if the move is valid
         if (isValidMove(card, roomName)) {
+
+            io.to(roomName).emit('playCardSound');
+
             data[roomName]['discardPile'].push(curCard) // Sending the current card on the board to the discard pile
 
             console.log("Sent " + curCard + " to the discardPile.");
@@ -159,7 +162,7 @@ function onConnection(socket) {
 
             //if the player has 0 cards left, they win the game
             if (data[roomName]['players'][curPlayerIndex]['hand'].length == 0){
-                io.to(roomName).emit('endGame', data[roomName]['players'][curPlayerIndex]['username']);
+                io.to(roomName).emit('endGame', [curPlayerIndex, data[roomName]['players'][curPlayerIndex]['username']]);
                 initRoom(roomName);
                 return;
             }
@@ -264,6 +267,7 @@ function onConnection(socket) {
                 console.log(`${data[roomName]['namesOfPlayers'][playerIndex]} (index ${playerIndex}) said "UNO" before ${data[roomName]['players'][i]['username']} (index ${i}), making them draw 2 cards.`)
                 drawCard(2,i,roomName);
                 io.to(roomName).emit('caughtUnsafe',[data[roomName]['namesOfPlayers'][playerIndex],data[roomName]['players'][i]['username']]);
+                io.to(roomName).emit('sayUNO');
             }
         }
     });
@@ -304,7 +308,7 @@ function onConnection(socket) {
 
                     // If there is only one player remaining, that player wins
                     if (data[room]['roomPlayerCount'] == 1) {
-                        io.to(room).emit('endGame', data[room]['players'][0]['username']);
+                        io.to(room).emit('endGame', [0,data[room]['players'][0]['username']]);
                         initRoom(room);
                         return;
                     }
