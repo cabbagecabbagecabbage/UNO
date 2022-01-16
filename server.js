@@ -282,12 +282,14 @@ function onConnection(socket) {
                     // If the player who left comes before the current player in the array of players then we subtract one from the turn
                     if (player < data[room]['turn']) {
                         data[room]['turn'] -= 1;
+                        fixIndex(room);
                     }
 
                     // If it was the turn of the player who left, we move the turn to the next person and subtract one from the turn
                     if (data[room]['turn'] == player) {
                         moveTurn(room, 1111); // Passing in a card that will not flag any special cases in moveTurn
                         data[room]['turn'] -= 1;
+                        fixIndex(room);
                     }
 
                     // Deleting the player from the room
