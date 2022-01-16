@@ -95,7 +95,6 @@ function onConnection(socket) {
                 - the room has not reached the roomLimit
                 - the room is not currently in a game (we check this with a countdown timer)
             */
-            console.log(roomPlayerCount,data[roomName]['timer']['secondsLeft']);
             if (roomPlayerCount < roomLimit && data[roomName]['timer']['secondsLeft'] > 0){
                 socket.join(roomName); //join the room
                 console.log(`${socket.username} joined ${roomName} (${roomPlayerCount+1}/${roomLimit})`);
