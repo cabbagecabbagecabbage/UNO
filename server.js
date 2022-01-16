@@ -309,10 +309,9 @@ function onConnection(socket) {
                         io.to(data[room]['players'][i]['id']).emit('receiveIndex',i);
                     }
 
+                    initNames(room);
                     showPlayersCardCounts(room);
-
                     showTurn(room);
-
                     return;
                 }
             }
@@ -464,16 +463,8 @@ function countdown(roomName){
 function startGame(roomName) {
     console.log(roomName + ': Requesting game');
     // variable to hold the number of people in the room
-    let people;
-    // Checking if a room has people
-    try {
-        people = io.sockets.adapter.rooms.get(roomName).size;
-    } 
-    // If there are no people, we do not start the game in the room
-    catch (e) {
-        console.log(roomName + ': No one here');
-        return;
-    }
+    let people = getRoomSize(roomName);
+    // Updating the database with the number of people in the room
     data[roomName]['roomPlayerCount'] = people;
 
     // If there are more than 2 people in the room, we start the game
@@ -491,9 +482,6 @@ function startGame(roomName) {
         data[roomName]['players'][counter]['username'] = io.sockets.sockets.get(item).username;
         counter += 1;
     }
-
-    // Updating the data base with the number of people in the room
-    data[roomName]['roomPlayerCount'] = people;
 
     // Generating a random deck for the room
 
@@ -566,6 +554,8 @@ function startGame(roomName) {
 
 //initializes the array containing names of the players in the room (to be displayed in client-side)
 function initNames(roomName){
+    console.log(roomName);
+    data[roomName]['namesOfPlayers'] = []
     for (let i = 0; i < data[roomName]['roomPlayerCount']; ++i){
         data[roomName]['namesOfPlayers'].push(data[roomName]['players'][i]['username']);
     }
