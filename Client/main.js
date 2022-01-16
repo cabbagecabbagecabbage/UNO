@@ -465,12 +465,30 @@ socket.on('setTurn', function(bool) {
 });
 
 
+socket.on('reversed', function(){
+    console.log('reversed');
+    Swal.fire({
+        title: "The direction was reversed!",
+        showConfirmButton: false,
+        timer: 1000
+    });
+});
+
+
+socket.on('skipped', function(){
+    console.log('skipped');
+    Swal.fire({
+        title: "Your turn was skipped!",
+        showConfirmButton: false,
+        timer: 1000
+    });
+});
+
+
 //displays an indicator next to the name of whichever player's turn it is
 socket.on('showTurn', function(turnIndex){
     let players = playerlist.children;
-    console.log(players.length, players[turnIndex]);
     players[turnIndex].style.fontWeight = "900";
-    console.log(players.length, players[turnIndex]);
 });
 
 
@@ -494,7 +512,6 @@ socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
 
 
 socket.on('showColour', function(curColour){
-    console.log(`showing the colour ${curColour}`);
     ctx.fillStyle = colours[curColour];
     ctx.fillRect(colourX, colourY, colourW, colourH);
 });
@@ -517,7 +534,6 @@ socket.on('endGame', function(winner){
 
 
 socket.on('playerDisconnected', function(playerName){
-    // alert(playerName + " has left the game.");
     Swal.fire({
         title: 'Someone left...',
         text: `${playerName} has left the game.`,

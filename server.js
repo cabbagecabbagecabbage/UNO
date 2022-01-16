@@ -386,6 +386,7 @@ function moveTurn(roomName, cardPlayed) {
     // Moving turn to the next person
 
     if (cardPlayed == skipCard) {
+        io.to(data[roomName]['players'][(curPlayerIndex+data[roomName]['reverse']) % data[roomName]['roomPlayerCount']]['id']).emit('skipped');
         data[roomName]['turn'] = (curPlayerIndex + 2 * data[roomName]['reverse']) % data[roomName]['roomPlayerCount'];
     }
 
@@ -393,6 +394,7 @@ function moveTurn(roomName, cardPlayed) {
         
         // Changing the direction
         data[roomName]['reverse'] *= -1;
+        io.to(roomName).emit('reversed');
         // Moving the turn
         data[roomName]['turn'] = (curPlayerIndex + 1 * data[roomName]['reverse']) % data[roomName]['roomPlayerCount'];
     }
