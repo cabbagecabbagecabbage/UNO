@@ -121,7 +121,7 @@ function onConnection(socket) {
         let card = info[1];
 
         let curPlayerIndex = data[roomName]['turn'];
-        console.log("Player " + curPlayerIndex + " in " + roomName + " is trying to play " + info[1]);
+        console.log("Player " + curPlayerIndex + " in " + roomName + " is trying to play " + card);
 
         // Current card that is face-up
         let curCard = data[roomName]['cardOnBoard'];
@@ -139,7 +139,7 @@ function onConnection(socket) {
 
             data[roomName]['cardOnBoard'] = card; // updating the current card on the board
             
-            let cardIndex = data[roomName]['players'][curPlayerIndex]['hand'].indexOf(info[1]); // Getting the index of the card that the player played
+            let cardIndex = data[roomName]['players'][curPlayerIndex]['hand'].indexOf(card); // Getting the index of the card that the player played
             data[roomName]['players'][curPlayerIndex]['hand'].splice(cardIndex, 1); // Remove the card from the players hand
 
             // Updating the current colour of the card on the board in the room
@@ -148,7 +148,7 @@ function onConnection(socket) {
 
             io.to(roomName).emit('showColour',cardClr);
 
-            console.log("Player " + curPlayerIndex + " in " + roomName + " has played " + info[1]);
+            console.log("Player " + curPlayerIndex + " in " + roomName + " has played " + card);
 
             // Re-draw the deck of the current player (remove the card that the player just played)
             io.to(data[roomName]['players'][data[roomName]['turn']]['id']).emit('hand',data[roomName]['players'][curPlayerIndex]['hand']);
