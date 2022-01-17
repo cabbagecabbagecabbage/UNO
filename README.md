@@ -2,12 +2,12 @@
 A card game based on the original UNO. 
 
 Created by Amanbir Behniwal and Rayton Chen for the ICS4U FSE using 
--HTML
--CSS
--JavaScript (Node.js)
--Express
--Socket.io
--SWAL2
+- HTML
+- CSS
+- JavaScript (Node.js)
+- Express
+- Socket.io
+- SWAL2
 
 We do not own the images used in this project.
 
