@@ -21,7 +21,7 @@ const WILDCARD = 13;
 const RED = 0;
 const YELLOW = 1;
 const GREEN = 2;
-const BLUE = 3;
+//const BLUE = 3;
 
 let deck = [0,1,2,3];
 
@@ -125,7 +125,7 @@ function onConnection(socket) {
 
         // Current card that is face-up
         let curCard = data[roomName]['cardOnBoard'];
-        let curCardNum = (curCard - (curCard % 10)) / 10;
+        //let curCardNum = (curCard - (curCard % 10)) / 10;
 
         // Calculating the type of card that the user is trying to play and its colour using the digits in its name
         let cardNum = (card - (card % 10)) / 10; // First two digits represent the type of card
