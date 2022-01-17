@@ -11,7 +11,7 @@ Created by Amanbir Behniwal and Rayton Chen for the ICS4U FSE using
 
 We do not own the images used in this project.
 
-To visit the github repository, go to https://github.com/ABehniwal/UNO
+To visit the GitHub repository, go to https://github.com/ABehniwal/UNO
 
 To play the game, go to https://uno-fse.herokuapp.com/
 
@@ -26,7 +26,7 @@ To play the game, go to https://uno-fse.herokuapp.com/
 - If there is only 1 player left in a room, that player wins.
 
 
-## How to play
+## How To Play
 - The app will prompt you to enter your name/nickname at the start, which will be seen by all other players. The app will retain this name for 24 hours before it asks you to enter it again.
 - Once there are at least 2 players in the game, a 10 second timer will start before the game starts. If another player joins within these 10 seconds, the timer will restart.
 - You must click on the card you wish to play.
@@ -38,4 +38,4 @@ To play the game, go to https://uno-fse.herokuapp.com/
 - If you play the reverseTurn card, the order of the players will be switched and will go in the opposite direction. (It will now be the turn of the player before you rather than the player after you.)
 - A player list on the right shows you the player usernames and the arrow indicates who's turn it is and in which direction the game is going. 
 - Once a game in a room has started, anyone else who wants to play will be moved to the next available room and will wait until there are at least 2 people in the room.
-- There are a maximum of 10 rooms available. If all the rooms are unavailable, you must wait until the game ends in a room before you can play.
+- There is a maximum of 10 rooms available. If no rooms are available, you must wait until the game ends in a room before you can play.
