@@ -296,7 +296,7 @@ function onConnection(socket) {
 
     //handles user disconnection (removes them from the game)
     socket.on('disconnect', function() {
-
+        console.log("a user disconnected");
         // Looping through the rooms in data
         for (let room in data) {
 
@@ -498,14 +498,19 @@ function countdown(roomName){
 
 // Begins a game if the conditions to begin a game are met
 function startGame(roomName) {
+
     console.log(roomName + ': Requesting game');
     // variable to hold the number of people in the room
     let people = getRoomSize(roomName);
     // Updating the database with the number of people in the room
     data[roomName]['roomPlayerCount'] = people;
 
-    // If there are more than 2 people in the room, we start the game
-    if (people < 2) return;
+    // If all the players left before the game started we make the room available for another game
+    if (data[roomName]['roomPlayerCount'] == 0) {
+        initRoom(roomName);
+        return;
+    }
+
     console.log(roomName + ": Starting game");
 
     // Storing the playerSockets as a set
@@ -518,6 +523,22 @@ function startGame(roomName) {
         data[roomName]['players'][counter]['id'] = item;
         data[roomName]['players'][counter]['username'] = io.sockets.sockets.get(item).username;
         counter += 1;
+    }
+
+    console.log("There are " + data[roomName]['roomPlayerCount']);
+
+
+    // If there is only one player remaining after the timer has ended, that player wins
+    if (data[roomName]['roomPlayerCount'] == 1) {
+
+        // Fixing the indices of the players in main.js
+        for (let i = 0; i < data[roomName]['roomPlayerCount']; ++i){
+            io.to(data[roomName]['players'][i]['id']).emit('receiveIndex',i);
+        }
+
+        io.to(roomName).emit('endGame', [0, data[roomName]['players'][0]['username']]);
+        initRoom(roomName);
+        return;
     }
 
     // Generating a random deck for the room
