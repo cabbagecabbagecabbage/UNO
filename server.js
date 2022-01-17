@@ -293,8 +293,6 @@ function onConnection(socket) {
 
     //handles user disconnection (removes them from the game)
     socket.on('disconnect', function() {
-        //console.log("A user disconnected.");
-        console.log("The socket id is: " + socket.id);
 
         // Looping through the rooms in data
         for (let room in data) {
