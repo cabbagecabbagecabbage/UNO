@@ -128,7 +128,6 @@ function onConnection(socket) {
 
         // Current card that is face-up
         let curCard = data[roomName]['cardOnBoard'];
-        //let curCardNum = (curCard - (curCard % 10)) / 10;
 
         // Calculating the type of card that the user is trying to play and its colour using the digits in its name
         let cardNum = (card - (card % 10)) / 10; // First two digits represent the type of card
@@ -358,7 +357,13 @@ function isValidMove(card, roomName) {
     // Extracting the digits in card number
     let cardNum = (card - (card % 10)) / 10;
     let cardClr = ((card % 10) % 4);
-
+    /*
+    conditions for being able to play a card:
+    the card you are trying to play
+        - has the same number as the current card on the board
+        - has the same colour as the current card on the board
+        - is a wild card
+    */
     if (curCardNum == cardNum || data[roomName]['colour'] == cardClr || cardNum >= 13) {
         return true;
     }
@@ -388,6 +393,7 @@ function drawCard(numCards, playerIndex, roomName) {
         gameDeck.splice(0,1);
     }
 
+    // If UNO was called on a player and they drew 2 cards, we must make them safe since they no longer have a single card.
     if (data[roomName]['players'][playerIndex]['hand'].length != 1){
         data[roomName]['players'][playerIndex]['safe'] = true;
     }
@@ -403,7 +409,8 @@ function drawCard(numCards, playerIndex, roomName) {
 
 // Moves the turn to the next player and changes the boolean 'turn' for each player respectively
 function moveTurn(roomName, cardPlayed) {
-    // Making sure that the index received is non-negative and mod the number of people in the room (may be unnecessary now but delete later)
+    
+    // Makes sure data[roomName]['turn'] is non-negative
     fixIndex(roomName);
     let curPlayerIndex = data[roomName]['turn'];
 
@@ -597,7 +604,7 @@ function initNames(roomName){
 
 //emits to all everyone in the room the index of the current player
 function showTurn(roomName){
-    io.to(roomName).emit('showTurn', data[roomName]['turn']);
+    io.to(roomName).emit('showTurn', [data[roomName]['turn'], data[roomName]['reverse']]);
 }
 
 
