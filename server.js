@@ -597,7 +597,7 @@ function initNames(roomName){
 
 //emits to all everyone in the room the index of the current player
 function showTurn(roomName){
-    io.to(roomName).emit('showTurn', data[roomName]['turn']);
+    io.to(roomName).emit('showTurn', [data[roomName]['turn'],data[roomName]['reverse']]);
 }
 
 
