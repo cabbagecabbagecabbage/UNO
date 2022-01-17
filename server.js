@@ -17,6 +17,9 @@ const REVERSE_CARD = 11;
 const DRAW_2_CARD = 12;
 const WILDCARD = 13;
 
+// Defining a random card which will not flag any special cases in any function
+const RANDOM_CARD = 1111;
+
 // Colours
 const RED = 0;
 const YELLOW = 1;
@@ -240,7 +243,7 @@ function onConnection(socket) {
         }
 
         // Using a random non card number as a parameter so that it doesn't trigger a special case in the moveTurn function
-        moveTurn(roomName, 1111);
+        moveTurn(roomName, RANDOM_CARD);
 
         console.log("It is now Player " + data[roomName]['turn'] + "'s turn");
     });
@@ -312,7 +315,7 @@ function onConnection(socket) {
 
                     // If it was the turn of the player who left, we move the turn to the next person and subtract one from the turn
                     if (data[room]['turn'] == player) {
-                        moveTurn(room, 1111); // Passing in a card that will not flag any special cases in moveTurn
+                        moveTurn(room, RANDOM_CARD); // Passing in a card that will not flag any special cases in moveTurn
                         data[room]['turn'] -= 1;
                         fixIndex(room);
                     }
