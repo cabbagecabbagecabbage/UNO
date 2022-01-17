@@ -279,6 +279,7 @@ function onConnection(socket) {
         if (data[roomName]['players'][playerIndex]['safe'] == false){
             data[roomName]['players'][playerIndex]['safe'] = true;
             io.to(roomName).emit('isSafe',data[roomName]['namesOfPlayers'][playerIndex]);
+            io.to(roomName).emit('sayUNO');
         }
 
         //makes unsafe players in the room pick up
