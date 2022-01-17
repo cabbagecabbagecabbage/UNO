@@ -96,7 +96,6 @@ blueButton.addEventListener("click", function() {
     setColour(3);
 });
 
-
 let wildCard = 0; // Making a variable to store the number of a wild card if played
 let wildCardPlayed = false // Boolean storing if a wild card is played and the change colour buttons are visible
 let room; //stores the name of the room the player is in
@@ -292,29 +291,21 @@ function onMouseClick(e) {
 }
 
 
-// alert the user when the try to play an invalid card
-socket.on('playCardFailed', function(){
-    Swal.fire({
-      title: 'Oops!',
-      text: "You can't play that card",
-      icon: 'error',
-      showConfirmButton: false,
-      timer: 1000
-    });
-});
-
-
-
-// alert the user that they cannot draw when they have a playable card in hand
-socket.on('playableCard', function(){
-    Swal.fire({
-      title: 'Oops!',
-      text: 'You cannot draw when when you have a playable card.',
-      icon: 'error',
-      showConfirmButton: false,
-      timer: 1000
-    });
-})
+// https://www.w3schools.com/graphics/game_sound.asp --> code for adding sound effects
+function sound(src) {
+    this.sound = document.createElement("audio");
+    this.sound.src = src;
+    this.sound.setAttribute("preload", "auto");
+    this.sound.setAttribute("controls", "none");
+    this.sound.style.display = "none";
+    document.body.appendChild(this.sound);
+    this.play = function(){
+      this.sound.play();
+    }
+    this.stop = function(){
+      this.sound.pause();
+    }
+}
 
 
 function setColour(colour) {
@@ -338,6 +329,7 @@ function setColour(colour) {
     wildCardPlayed = false;
 }
 
+
 function playWildCard(wildCardIndex) {
     wildCard = hand[wildCardIndex];
     wildCardPlayed = true;
@@ -352,6 +344,39 @@ function playWildCard(wildCardIndex) {
     blueButton.disabled = false;
     blueButton.style.visibility = "visible";
 }
+
+
+//resizes the canvas (inspired by https://stackoverflow.com/questions/5517783/preventing-canvas-clear-when-resizing-window)
+function resize(height){
+    let curImage = ctx.getImageData(0,0,canvas.width,canvas.height);
+    canvas.height = height;
+    ctx.putImageData(curImage,0,0);
+    ctx.font = "16px Arial";
+}
+
+
+// alert the user when the try to play an invalid card
+socket.on('playCardFailed', function(){
+    Swal.fire({
+      title: 'Oops!',
+      text: "You can't play that card",
+      icon: 'error',
+      showConfirmButton: false,
+      timer: 1000
+    });
+});
+
+
+// alert the user that they cannot draw when they have a playable card in hand
+socket.on('playableCard', function(){
+    Swal.fire({
+      title: 'Oops!',
+      text: 'You cannot draw when when you have a playable card.',
+      icon: 'error',
+      showConfirmButton: false,
+      timer: 1000
+    });
+})
 
 
 //process the response of the room request: either you can join a room, or everything is full
@@ -384,6 +409,7 @@ socket.on('responseRoom', function(roomName){
     }
 });
 
+
 socket.on('playDrawnCard', function(bool) {
     Swal.fire({
         title: 'The card you drew is playable',
@@ -414,15 +440,6 @@ socket.on('countDown', function(secondsLeft){
         ctx.drawImage(unoButton,BUTTON_X,BUTTON_Y,BUTTON_W,BUTTON_H); //drawing the uno button
     }
 });
-
-
-//resizes the canvas (inspired by https://stackoverflow.com/questions/5517783/preventing-canvas-clear-when-resizing-window)
-function resize(height){
-    let curImage = ctx.getImageData(0,0,canvas.width,canvas.height);
-    canvas.height = height;
-    ctx.putImageData(curImage,0,0);
-    ctx.font = "16px Arial";
-}
 
 
 //receives and displays the hand
@@ -462,30 +479,17 @@ socket.on('drawCardSound', function() {
     drawCardSound.play();
 });
 
+
+// When a player plays a card, it plays the playingCard sound.
 socket.on('playCardSound', function() {
     playingCard.play()
 });
 
+
+// When someone presses the uno button, plays the sayingUNO sound.
 socket.on('sayUNO', function() {
     sayingUNO.play();
 });
-
-
-// https://www.w3schools.com/graphics/game_sound.asp --> code for adding sound effects
-function sound(src) {
-    this.sound = document.createElement("audio");
-    this.sound.src = src;
-    this.sound.setAttribute("preload", "auto");
-    this.sound.setAttribute("controls", "none");
-    this.sound.style.display = "none";
-    document.body.appendChild(this.sound);
-    this.play = function(){
-      this.sound.play();
-    }
-    this.stop = function(){
-      this.sound.pause();
-    }
-}
 
 
 //sets the turn variable to true or false (true if it is the player's turn, false otherwise)
@@ -581,12 +585,14 @@ socket.on('showPlayersCardCounts', function(namesOfPlayers,playersCardCounts){
 });
 
 
+// Fills the colour rectangle with the colour of the current card
 socket.on('showColour', function(curColour){
     ctx.fillStyle = colours[curColour];
     ctx.fillRect(COLOUR_X, COLOUR_Y, COLOUR_W, COLOUR_H);
 });
 
 
+// When the game ends, play the corresponding winner and loser sounds and disconnect the players.
 socket.on('endGame', function(info){
     winnerIndex = info[0];
     winner = info[1];
@@ -616,6 +622,7 @@ socket.on('endGame', function(info){
 });
 
 
+// Alert the players that someone in the room has left the game.
 socket.on('playerDisconnected', function(playerName){
     Swal.fire({
         title: 'Someone left...',

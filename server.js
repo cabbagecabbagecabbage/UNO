@@ -326,16 +326,16 @@ function onConnection(socket) {
                     // Changing the count of the number of players in the room
                     data[room]['roomPlayerCount'] -= 1;
 
+                    // Fixing the indices of the players in main.js
+                    for (let i = 0; i < data[room]['roomPlayerCount']; ++i){
+                        io.to(data[room]['players'][i]['id']).emit('receiveIndex',i);
+                    }
+
                     // If there is only one player remaining, that player wins
                     if (data[room]['roomPlayerCount'] == 1) {
                         io.to(room).emit('endGame', [0,data[room]['players'][0]['username']]);
                         initRoom(room);
                         return;
-                    }
-
-                    // Fixing the indices of the players in main.js
-                    for (let i = 0; i < data[room]['roomPlayerCount']; ++i){
-                        io.to(data[room]['players'][i]['id']).emit('receiveIndex',i);
                     }
 
                     initNames(room);
@@ -530,6 +530,7 @@ function startGame(roomName) {
     // Making the deck the remaining cards
     randDeck = randDeck.slice(7 * people, randDeck.length);
 
+
     // While a wild card or a draw 4 wild card is at the top of the deck, we move it to the bottom of the deck
     while (randDeck[0] >= 130) {
         let specialCard = randDeck[0];
@@ -539,6 +540,9 @@ function startGame(roomName) {
 
     let currentCard = randDeck[0];
     let currentCardNum = (currentCard - (currentCard % 10)) / 10;
+
+    // We remove the first card from the deck since it is the current card on the board
+    randDeck.splice(0, 1);
 
     // Since the first card can be a special card (other than the WILDCARDs) we set current player's index to people-1 in the start so that if the first card
     // is a special card, its 'played' on the first player
@@ -554,10 +558,10 @@ function startGame(roomName) {
     data[roomName]['deck'] = randDeck;
 
     // update the starting card
-    data[roomName]['cardOnBoard'] = randDeck[0];
+    data[roomName]['cardOnBoard'] = currentCard;
 
     // Setting the current colour on the board in the room
-    data[roomName]['colour'] = ((randDeck[0] % 10) % 4);
+    data[roomName]['colour'] = ((currentCard % 10) % 4);
     io.to(roomName).emit('showColour',data[roomName]['colour']);
 
     // Moving the turn to the first player (or the second if the first card is a SKIP_CARD)
