@@ -10,6 +10,8 @@ Rules:
 - If you have a playable card, you must play it. Similarly, if you draw a playable card, you must play it.
 - Every card that is played by the players is put in the discard pile. Once the deck is empty, the discard pile is shuffled and put into the deck.
 - The player to get rid of all their cards wins.
+- If a player leaves and it was their turn, their turn will get skipped and the same current card will be shown for the player who would have come after the player who left. If it was not the turn of the player who left, then the game will simply continue as is without that player. 
+- If there is only 1 player left in a room, that player wins.
 
 
 How to play:
@@ -22,3 +24,6 @@ How to play:
 - Once you click a wild card you must play it. You will have the option to choose any colour you want to change the current colour of the board to. You are also aloud to keep the same colour as on the board.
 - If you play the skipTurn card, the next players turn will be skipped.
 - If you play the reverseTurn card, the order of the players will be switched.
+- A player list on the right shows you the player usernames and it is the turn of the player who is bolded.
+- Once a game in a room has started, anyone else wants to play will be moved to the next available room and will wait until there are at least 2 people in the room.
+- There are a maximum of 10 rooms available. If all the rooms are available, you must wait until the game ends in a room before you can play.
