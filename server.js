@@ -220,6 +220,25 @@ function onConnection(socket) {
         // Calling the function that will draw the card for the player
         drawCard(numCards, playerIndex, roomName);
 
+        // If the player drew a playable card, playing it for them
+        if (numCards == 1) {
+            
+            if (isValidMove(data[roomName]['players'][playerIndex]['hand'][data[roomName]['players'][playerIndex]['hand'].length - 1], roomName)) {
+
+                // If the card that the player drew is a wild card, then we pass in true (since we need to make the buttons clickable)
+                if (data[roomName]['players'][playerIndex]['hand'][data[roomName]['players'][playerIndex]['hand'].length - 1] >= 130) {
+                    io.to(data[roomName]['players'][playerIndex]['id']).emit('playDrawnCard', true);
+                }
+
+                // Otherwise we pass in false
+                else {
+                    io.to(data[roomName]['players'][playerIndex]['id']).emit('playDrawnCard', false);
+                }
+                
+                return;
+            }
+        }
+
         // Using a random non card number as a parameter so that it doesn't trigger a special case in the moveTurn function
         moveTurn(roomName, 1111);
 

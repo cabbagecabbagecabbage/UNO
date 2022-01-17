@@ -260,20 +260,9 @@ function onMouseClick(e) {
             if (cardX < pageX && pageX < cardX + CARD_WIDTH && cardY < pageY && pageY < cardY + CARD_HEIGHT){
                 // if a wild card was played, we un-disable the change colour buttons
                 if (hand[i] >= 130) {
-
-                    wildCardPlayed = true;
-                    wildCard = hand[i];
-
-                    // Making the buttons visible and clickable
-                    redButton.disabled = false;
-                    redButton.style.visibility = "visible";
-                    yellowButton.disabled = false;
-                    yellowButton.style.visibility = "visible";
-                    greenButton.disabled = false;
-                    greenButton.style.visibility = "visible";
-                    blueButton.disabled = false;
-                    blueButton.style.visibility = "visible";
+                    playWildCard(i);
                 }
+
                 else {
                     //inform the server that we are playing this card
                     console.log(`${hand[i]} played`);
@@ -349,6 +338,21 @@ function setColour(colour) {
     wildCardPlayed = false;
 }
 
+function playWildCard(wildCardIndex) {
+    wildCard = hand[wildCardIndex];
+    wildCardPlayed = true;
+
+    // Making the buttons visible and clickable
+    redButton.disabled = false;
+    redButton.style.visibility = "visible";
+    yellowButton.disabled = false;
+    yellowButton.style.visibility = "visible";
+    greenButton.disabled = false;
+    greenButton.style.visibility = "visible";
+    blueButton.disabled = false;
+    blueButton.style.visibility = "visible";
+}
+
 
 //process the response of the room request: either you can join a room, or everything is full
 socket.on('responseRoom', function(roomName){
@@ -378,6 +382,22 @@ socket.on('responseRoom', function(roomName){
           showConfirmButton: true,
         });
     }
+});
+
+socket.on('playDrawnCard', function(bool) {
+    Swal.fire({
+        title: 'The card you drew is playable',
+        icon: 'success',
+        confirmButtonText: 'Play',
+        allowOutsideClick: false,
+      }).then((result) => {
+          if (result.isConfirmed && ! bool){
+            socket.emit('playingCard', [room, hand[hand.length - 1]]);
+          }
+          else if (result.isConfirmed && bool) {
+            playWildCard(hand.length-1);
+          }
+      });
 });
 
 
