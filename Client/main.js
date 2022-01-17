@@ -560,8 +560,12 @@ socket.on('currentCard', function(currentCard){
 
 
 //displays an indicator next to the name of whichever player's turn it is
-socket.on('showTurn', function(turnIndex){
-    let players = playerlist.children;
+socket.on('showTurn', function(info){
+    let turnIndex = info[0];
+    let dir = info[1];
+    let players = playerlist.children; // https://www.w3schools.com/jsref/prop_element_children.asp
+    if (dir == 1) players[turnIndex].innerHTML += "↓"; //indicate the current player and direction
+    else if (dir == -1) players[turnIndex].innerHTML += "↑";
     players[turnIndex].style.fontWeight = "900"; //make the player's name and cards bold
 });
 
