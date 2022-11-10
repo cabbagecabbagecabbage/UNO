@@ -1,3 +1,5 @@
+This fork was created for deploying the app.
+
 # UNO
 A card game based on the original UNO. 
 
@@ -11,9 +13,9 @@ Created by Amanbir Behniwal and Rayton Chen for the ICS4U FSE using
 
 We do not own the images used in this project.
 
-To visit the GitHub repository, go to https://github.com/ABehniwal/UNO
+To visit the original GitHub repository, go to https://github.com/ABehniwal/UNO
 
-To play the game, go to https://uno-fse.herokuapp.com/
+To play the game, go to https://uno-21wl.onrender.com/
 
 ## Rules
 - You need a minimum of 2 players to play and can play with a maximum of 10 players.
